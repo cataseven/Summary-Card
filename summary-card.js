@@ -189,7 +189,7 @@ class SummaryCardEditor extends LitElement {
           <h3>Cards</h3>
           ${(this._config.cards || []).map((card, cardIndex) => this._renderCard(card, cardIndex))}
           <mwc-button @click="${() => this._addOrDelete('add', ['cards'])}" outlined>
-            <ha-icon icon="mdi:plus"></ha-icon> Add Card
+            <ha-icon icon="mdi:plus"></ha-icon> Add Domain
           </mwc-button>
         </div>
       </div>
@@ -243,10 +243,10 @@ class SummaryCardEditor extends LitElement {
               placeholder="light.decorative, switch.unused"
             ></ha-textfield>
             <div class="styles-container">
-              <h5>Style Rules</h5>
+              <h5>Conditions</h5>
               ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, cardIndex, styleIndex))}
               <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined>
-                <ha-icon icon="mdi:plus"></ha-icon> Add Style Rule
+                <ha-icon icon="mdi:plus"></ha-icon> Add Condition
               </mwc-button>
             </div>
           </div>
@@ -259,7 +259,7 @@ class SummaryCardEditor extends LitElement {
     return html`
       <div class="style-editor">
         <div class="toolbar">
-          <h6>Style Rule ${styleIndex + 1}</h6>
+          <h6>Condition ${styleIndex + 1}</h6>
           <ha-icon 
             class="delete-btn" 
             icon="mdi:close"
