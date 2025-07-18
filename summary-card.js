@@ -9,9 +9,21 @@ const editorDomains = [
   'media_player', 'person', 'alarm_control_panel', 'lock', 'vacuum'
 ];
 
-const editorConditions = ['any_active', 'all_inactive', 'any_unavailable'];
+// Yeni koşullar eklendi
+const editorConditions = ['any_active', 'all_inactive', 'any_unavailable', 'any_inactive', 'all_active'];
+
+// Yeni koşullar için etiketler eklendi
+const conditionLabels = {
+  'any_active': 'If Any Active',
+  'all_inactive': 'If All Inactive',
+  'any_unavailable': 'If Any Unavailable',
+  'any_inactive': 'If Any Inactive',
+  'all_active': 'If All Active'
+};
 
 class SummaryCardEditor extends LitElement {
+  _didInitialFilter = false;
+
   static get properties() {
     return {
       hass: {},
@@ -22,9 +34,45 @@ class SummaryCardEditor extends LitElement {
 
   setConfig(config) {
     this._config = config;
-    // Eğer _cardEditorStates henüz tanımlanmadıysa veya kart sayısı değiştiyse yeniden boyutlandır
     if (!this._cardEditorStates || this._cardEditorStates.length !== (config.cards?.length || 0)) {
         this._cardEditorStates = (config.cards || []).map(() => false);
+    }
+  }
+
+  willUpdate(changedProperties) {
+    // hass ve config nesneleri mevcut olduğunda ve filtreleme işlemi bu oturumda henüz yapılmadıysa çalışır.
+    if (this.hass && this._config && !this._didInitialFilter) {
+      const defaultConfig = SummaryCard.getStubConfig();
+      
+      // Mevcut yapılandırmanın, varsayılan yapılandırma olup olmadığını kontrol et.
+      // Bu, kullanıcının henüz bir değişiklik yapmadığı ilk kurulum anını tespit eder.
+      const isDefaultConfig = JSON.stringify(this._config) === JSON.stringify(defaultConfig);
+
+      if (isDefaultConfig) {
+        // Bu ilk yapılandırma ise, mevcut domain'lere göre filtrele.
+        const allEntities = Object.values(this.hass.states);
+        const presentDomains = new Set(allEntities.map(e => e.entity_id.split('.')[0]));
+
+        const filteredCards = defaultConfig.cards.filter(card => presentDomains.has(card.domain));
+
+        const newConfig = {
+            ...this._config,
+            cards: filteredCards,
+        };
+
+        // UI'daki YAML'ı güncellemek için olayı gönder.
+        this.dispatchEvent(new CustomEvent("config-changed", {
+            detail: { config: newConfig },
+            bubbles: true,
+            composed: true,
+        }));
+
+        // Editör arayüzünün anında güncellenmesi için bileşenin kendi durumunu da güncelle.
+        this.setConfig(newConfig);
+      }
+      
+      // Bu editör örneği için kontrolün yapıldığını ve tekrar çalışmayacağını işaretle.
+      this._didInitialFilter = true;
     }
   }
 
@@ -38,7 +86,6 @@ class SummaryCardEditor extends LitElement {
     if (target.type === 'checkbox') {
         value = target.checked;
     } else if (target.type !== 'text' && target.value.trim() !== '' && !isNaN(target.value)) {
-        // 'type' attribute'ü olmasa bile, eğer değer sayısal ise sayıya çevir.
         value = Number(value);
     }
     
@@ -46,7 +93,6 @@ class SummaryCardEditor extends LitElement {
     let current = newConfig;
 
     for (let i = 0; i < path.length - 1; i++) {
-        // Eğer yol mevcut değilse, oluştur.
         if (current[path[i]] === undefined) {
              current[path[i]] = {};
         }
@@ -70,7 +116,6 @@ class SummaryCardEditor extends LitElement {
       }
     }
     
-    // Değişikliği Home Assistant'a bildir.
     this.dispatchEvent(new CustomEvent("config-changed", {
       detail: { config: newConfig },
       bubbles: true,
@@ -88,7 +133,6 @@ class SummaryCardEditor extends LitElement {
     const newConfig = JSON.parse(JSON.stringify(this._config));
     let current = newConfig;
     
-    // Parent object/array'e ulaşmak için yolun son elemanı hariç döngü kur
     for (let i = 0; i < path.length - 1; i++) {
         current = current[path[i]];
     }
@@ -107,10 +151,8 @@ class SummaryCardEditor extends LitElement {
         current[lastKey].push(newItem);
     } else { // delete
         const indexToDelete = parseInt(lastKey, 10);
-        // Silme işlemi yapılacak dizi, `current`'ın kendisidir. Örneğin `cards` veya `styles` dizisi.
         current.splice(indexToDelete, 1);
 
-        // Eğer silinen bir ana kart ise, onun açık/kapalı durumunu da listeden sil
         const parentKey = path[path.length - 2];
         if (parentKey === 'cards') {
             this._cardEditorStates.splice(indexToDelete, 1);
@@ -231,9 +273,11 @@ class SummaryCardEditor extends LitElement {
             @selected="${this._valueChanged}"
             @closed="${(e) => e.stopPropagation()}"
             >
-          ${editorConditions.map(c => html`<mwc-list-item .value="${c}">${c}</mwc-list-item>`)}
+          ${editorConditions.map(c => html`<mwc-list-item .value="${c}">${conditionLabels[c] || c}</mwc-list-item>`)}
         </ha-select>
         <ha-textfield label="Text" .value="${style.text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.text" @input="${this._valueChanged}"></ha-textfield>
+        <!-- YENİ: Secondary Text alanı eklendi -->
+        <ha-textfield label="Secondary Text" .value="${style.secondary_text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" @input="${this._valueChanged}"></ha-textfield>
         <ha-icon-picker label="Icon" .value="${style.icon || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.icon" @value-changed="${this._valueChanged}"></ha-icon-picker>
         <ha-textfield label="Color" .value="${style.color || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.color" @input="${this._valueChanged}"></ha-textfield>
       </div>
@@ -290,8 +334,8 @@ class SummaryCard extends LitElement {
           name: 'Lights',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:lightbulb-off', color: 'grey' },
-            { condition: 'any_active', text: '{count} on', icon: 'mdi:lightbulb-on', color: 'orange' }, // Normal çalışma durumu
-            { condition: 'all_inactive', text: 'All Off', icon: 'mdi:lightbulb-off-outline', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} on', icon: 'mdi:lightbulb-on', color: 'orange' },
+            { condition: 'all_inactive', text: 'All Off', icon: 'mdi:lightbulb-off-outline', color: 'green' },
           ],
         },
         {
@@ -299,8 +343,8 @@ class SummaryCard extends LitElement {
           name: 'Switches',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:power-plug-off', color: 'grey' },
-            { condition: 'any_active', text: '{count} on', icon: 'mdi:power-plug', color: 'orange' }, // Normal çalışma durumu
-            { condition: 'all_inactive', text: 'All Off', icon: 'mdi:power-plug-off-outline', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} on', icon: 'mdi:power-plug', color: 'orange' },
+            { condition: 'all_inactive', text: 'All Off', icon: 'mdi:power-plug-off-outline', color: 'green' },
           ],
         },
         {
@@ -308,8 +352,8 @@ class SummaryCard extends LitElement {
           name: 'Sensors',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:alert-circle-outline', color: 'grey' },
-            { condition: 'any_active', text: '{count} detected', icon: 'mdi:alert-circle', color: 'orange' }, // Uyarı durumu
-            { condition: 'all_inactive', text: 'All Clear', icon: 'mdi:check-circle', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} detected', icon: 'mdi:alert-circle', color: 'orange' },
+            { condition: 'all_inactive', text: 'All Clear', icon: 'mdi:check-circle', color: 'green' },
           ],
         },
         {
@@ -317,8 +361,8 @@ class SummaryCard extends LitElement {
           name: 'Climate',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:thermostat-box', color: 'grey' },
-            { condition: 'any_active', text: '{count} active', icon: 'mdi:thermostat', color: 'orange' }, // Normal çalışma durumu
-            { condition: 'all_inactive', text: 'All Off', icon: 'mdi:power', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} active', icon: 'mdi:thermostat', color: 'orange' },
+            { condition: 'all_inactive', text: 'All Off', icon: 'mdi:power', color: 'green' },
           ],
         },
         {
@@ -326,8 +370,8 @@ class SummaryCard extends LitElement {
           name: 'Covers',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:window-shutter-alert', color: 'grey' },
-            { condition: 'any_active', text: '{count} open', icon: 'mdi:window-shutter-open', color: 'red' }, // Tehlikeli durum
-            { condition: 'all_inactive', text: 'All Closed', icon: 'mdi:window-shutter', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} open', icon: 'mdi:window-shutter-open', color: 'red' },
+            { condition: 'all_inactive', text: 'All Closed', icon: 'mdi:window-shutter', color: 'green' },
           ],
         },
         {
@@ -335,8 +379,8 @@ class SummaryCard extends LitElement {
           name: 'Media Players',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:cast-off', color: 'grey' },
-            { condition: 'any_active', text: '{count} playing', icon: 'mdi:cast-connected', color: 'dodgerblue' }, // Nötr durum
-            { condition: 'all_inactive', text: 'All Idle', icon: 'mdi:cast', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} playing', icon: 'mdi:cast-connected', color: 'dodgerblue' },
+            { condition: 'all_inactive', text: 'All Idle', icon: 'mdi:cast', color: 'green' },
           ],
         },
         {
@@ -344,8 +388,8 @@ class SummaryCard extends LitElement {
           name: 'People',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:account-question', color: 'grey' },
-            { condition: 'any_active', text: '{count} at home', icon: 'mdi:account-group', color: 'green' }, // İyi durum
-            { condition: 'all_inactive', text: 'Everyone away', icon: 'mdi:account-group-outline', color: 'orange' }, // Uyarı durumu (ev boş)
+            { condition: 'any_active', text: '{active_count} at home', icon: 'mdi:account-group', color: 'green' },
+            { condition: 'all_inactive', text: 'Everyone away', icon: 'mdi:account-group-outline', color: 'orange' },
           ],
         },
         {
@@ -353,8 +397,8 @@ class SummaryCard extends LitElement {
           name: 'Alarm',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:shield-off', color: 'grey' },
-            { condition: 'any_active', text: 'Armed!', icon: 'mdi:shield-check', color: 'red' }, // Tehlikeli durum (Alarm kurulu veya çalıyor)
-            { condition: 'all_inactive', text: 'Disarmed', icon: 'mdi:shield-outline', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: 'Armed!', icon: 'mdi:shield-check', color: 'red' },
+            { condition: 'all_inactive', text: 'Disarmed', icon: 'mdi:shield-outline', color: 'green' },
           ],
         },
         {
@@ -362,8 +406,8 @@ class SummaryCard extends LitElement {
           name: 'Locks',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:lock-alert', color: 'grey' },
-            { condition: 'any_active', text: '{count} unlocked', icon: 'mdi:lock-open-variant', color: 'red' }, // Tehlikeli durum
-            { condition: 'all_inactive', text: 'All Locked', icon: 'mdi:lock', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} unlocked', icon: 'mdi:lock-open-variant', color: 'red' },
+            { condition: 'all_inactive', text: 'All Locked', icon: 'mdi:lock', color: 'green' },
           ],
         },
         {
@@ -371,8 +415,8 @@ class SummaryCard extends LitElement {
           name: 'Vacuums',
           styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:robot-vacuum-variant-alert', color: 'grey' },
-            { condition: 'any_active', text: '{count} cleaning', icon: 'mdi:robot-vacuum-variant', color: 'dodgerblue' }, // Nötr durum
-            { condition: 'all_inactive', text: 'All Docked', icon: 'mdi:robot-vacuum-variant', color: 'green' }, // İyi durum
+            { condition: 'any_active', text: '{active_count} cleaning', icon: 'mdi:robot-vacuum-variant', color: 'dodgerblue' },
+            { condition: 'all_inactive', text: 'All Docked', icon: 'mdi:robot-vacuum-variant', color: 'green' },
           ],
         },
       ],
@@ -404,6 +448,10 @@ class SummaryCard extends LitElement {
     const entities = this._getEntities(cardConfig);
     const style = this._getStyleForEntities(entities, cardConfig);
 
+    if (entities.length === 0 && Object.keys(style).length === 0) {
+        return html``;
+    }
+
     return html`
       <div class="status-card" style="--icon-color: ${style.color || "var(--primary-text-color)"};">
         <div class="icon">
@@ -411,6 +459,7 @@ class SummaryCard extends LitElement {
         </div>
         <div class="info">
           <div class="primary-text">${style.text || cardConfig.name}</div>
+          <!-- DEĞİŞİKLİK: secondary_text artık stil kuralından geliyor -->
           <div class="secondary-text">${style.secondary_text || ""}</div>
         </div>
       </div>
@@ -439,7 +488,10 @@ class SummaryCard extends LitElement {
 
   _getStyleForEntities(entities, cardConfig) {
     let style = {};
-    if (!cardConfig.styles || !entities) return style;
+    if (!cardConfig.styles || !entities) {
+        if (!entities || entities.length === 0) return {};
+        return style;
+    }
 
     const domain = cardConfig.domain;
     const activeStates = DOMAIN_STATE_MAP[domain]?.active || ['on'];
@@ -447,6 +499,11 @@ class SummaryCard extends LitElement {
     const activeCount = activeEntities.length;
     const unavailableEntities = entities.filter(e => e.state === 'unavailable');
     const unavailableCount = unavailableEntities.length;
+    const inactiveCount = entities.length - activeCount - unavailableCount;
+
+    if (entities.length === 0) {
+      return {};
+    }
 
     for (const rule of cardConfig.styles) {
       let conditionMet = false;
@@ -455,17 +512,31 @@ class SummaryCard extends LitElement {
           conditionMet = activeCount > 0;
           break;
         case 'all_inactive':
-          conditionMet = activeCount === 0 && unavailableCount === 0;
+          conditionMet = activeCount === 0 && unavailableCount === 0 && entities.length > 0;
           break;
         case 'any_unavailable':
-          conditionMet = unavailableCount > 0 || entities.length === 0;
+          conditionMet = unavailableCount > 0;
+          break;
+        case 'any_inactive':
+          conditionMet = inactiveCount > 0;
+          break;
+        case 'all_active':
+          conditionMet = activeCount === entities.length && entities.length > 0;
           break;
       }
       if (conditionMet) {
         style = { ...rule };
         if (style.text) {
           style.text = style.text
-            .replace('{count}', activeCount)
+            .replace('{active_count}', activeCount)
+            .replace('{inactive_count}', inactiveCount)
+            .replace('{unavailable_count}', unavailableCount);
+        }
+        // YENİ: secondary_text de değişkenleri destekliyor
+        if (style.secondary_text) {
+          style.secondary_text = style.secondary_text
+            .replace('{active_count}', activeCount)
+            .replace('{inactive_count}', inactiveCount)
             .replace('{unavailable_count}', unavailableCount);
         }
         return style;
@@ -482,20 +553,37 @@ class SummaryCard extends LitElement {
         gap: 8px;
       }
       .status-card {
-        background: rgba(var(--rgb-card-background-color, 0, 0, 0), 0.2);
+        background: var(--ha-card-background, var(--card-background-color, #282828));
         border-radius: 12px;
         padding: 12px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 16px;
         height: var(--card-height, 85px);
         box-sizing: border-box;
       }
       .icon {
-        color: var(--icon-color, var(--primary-text-color));
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+      }
+      .icon::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: var(--icon-color, var(--primary-text-color));
+        opacity: 0.2;
       }
       ha-icon {
-        --mdc-icon-size: 32px;
+        --mdc-icon-size: 24px;
+        color: var(--icon-color, var(--primary-text-color));
+        position: relative;
       }
       .info {
         display: flex;
