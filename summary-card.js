@@ -7,7 +7,7 @@ import {
 const editorDomains = [
   'light', 'switch', 'binary_sensor', 'climate', 'cover',
   'media_player', 'person', 'alarm_control_panel', 'lock', 'vacuum', 'sensor',
-  'camera' // Added camera domain here
+  'camera'
 ];
 
 const editorConditions = ['any_active', 'all_inactive', 'any_unavailable', 'any_inactive', 'all_active'];
@@ -59,7 +59,7 @@ const DOMAIN_STATE_MAP = {
   vacuum: {
     active: ['cleaning', 'paused', 'returning', 'error']
   },
-  camera: { // Added camera domain and its active state
+  camera: {
     active: ['streaming', 'on', 'idle']
   },
 };
@@ -105,8 +105,8 @@ class SummaryCard extends LitElement {
 
   static getStubConfig() {
     return {
-      columns: 3,
-      row_height: '85px',
+      columns: 6,
+      row_height: '55px',
       cards: [{
         domain: 'light',
         name: 'Lights',
@@ -117,7 +117,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} on',
+          text: '{{ active_count }} on', // Updated to template
           icon: 'mdi:lightbulb-on',
           color: 'orange'
         }, {
@@ -136,7 +136,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} on',
+          text: '{{ active_count }} on', // Updated to template
           icon: 'mdi:power-plug',
           color: 'orange'
         }, {
@@ -155,7 +155,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} detected',
+          text: '{{ active_count }} detected', // Updated to template
           icon: 'mdi:alert-circle',
           color: 'orange'
         }, {
@@ -174,7 +174,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} active',
+          text: '{{ active_count }} active', // Updated to template
           icon: 'mdi:thermostat',
           color: 'orange'
         }, {
@@ -193,7 +193,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} open',
+          text: '{{ active_count }} open', // Updated to template
           icon: 'mdi:window-shutter-open',
           color: 'red'
         }, {
@@ -212,7 +212,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} playing',
+          text: '{{ active_count }} playing', // Updated to template
           icon: 'mdi:cast-connected',
           color: 'dodgerblue'
         }, {
@@ -231,7 +231,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} at home',
+          text: '{{ active_count }} at home', // Updated to template
           icon: 'mdi:account-group',
           color: 'green'
         }, {
@@ -269,7 +269,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} unlocked',
+          text: '{{ active_count }} unlocked', // Updated to template
           icon: 'mdi:lock-open-variant',
           color: 'red'
         }, {
@@ -288,7 +288,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} cleaning',
+          text: '{{ active_count }} cleaning', // Updated to template
           icon: 'mdi:robot-vacuum-variant',
           color: 'dodgerblue'
         }, {
@@ -298,7 +298,7 @@ class SummaryCard extends LitElement {
           color: 'green'
         }, ],
       },
-      { // Added a default stub config for camera
+      {
         domain: 'camera',
         name: 'Cameras',
         styles: [{
@@ -308,7 +308,7 @@ class SummaryCard extends LitElement {
           color: 'grey'
         }, {
           condition: 'any_active',
-          text: '{active_count} streaming',
+          text: '{{ active_count }} streaming', // Updated to template
           icon: 'mdi:camera-wireless',
           color: 'orange'
         }, {
@@ -376,7 +376,7 @@ class SummaryCard extends LitElement {
     if (!this.hass || !this.config) return html``;
 
     return html`
-      <div class="grid-container" style="--grid-columns: ${this.config.columns || 3}; --card-height: ${this.config.row_height || '85px'};">
+      <div class="grid-container" style="--grid-columns: ${this.config.columns || 6}; --card-height: ${this.config.row_height || '55px'};">
         ${this.config.cards.map((cardConfig, index) => this._renderCard(cardConfig, index))}
       </div>
     `;
@@ -576,20 +576,71 @@ class SummaryCard extends LitElement {
         }
 
         if (allTemplatesValid) {
-          let style = { ...rule
+          let style = { ...rule };
+
+          // Define variables to be passed to the template context
+          // These variables will be available directly as 'active_count', 'inactive_count', 'unavailable_count'
+          const templateVariables = {
+            active_count: activeCount,
+            inactive_count: inactiveCount,
+            unavailable_count: unavailableCount,
+            // If you need direct entity objects or specific attributes for all entities
+            // you might pass something like:
+            // entities_data: entities.map(e => ({ entity_id: e.entity_id, state: e.state, attributes: e.attributes }))
           };
+
+          // Process text and secondary_text as templates using Home Assistant's /api/template endpoint
           if (style.text) {
-            style.text = style.text
-              .replace('{active_count}', activeCount)
-              .replace('{inactive_count}', inactiveCount)
-              .replace('{unavailable_count}', unavailableCount);
+            try {
+              const response = await fetch('/api/template', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${this.hass.auth.data.access_token}`
+                },
+                body: JSON.stringify({
+                  template: style.text,
+                  variables: templateVariables // Pass variables for template rendering
+                })
+              });
+              if (response.ok) {
+                style.text = await response.text();
+              } else {
+                console.error(`Error rendering text template (${response.status}):`, await response.text());
+                // Fallback or error message if template rendering fails
+                style.text = `Template Error: ${style.text}`;
+              }
+            } catch (e) {
+              console.error("Network or other error during text template evaluation:", style.text, e);
+              style.text = `Template Error: ${style.text}`;
+            }
           }
+
           if (style.secondary_text) {
-            style.secondary_text = style.secondary_text
-              .replace('{active_count}', activeCount)
-              .replace('{inactive_count}', inactiveCount)
-              .replace('{unavailable_count}', unavailableCount);
+            try {
+              const response = await fetch('/api/template', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${this.hass.auth.data.access_token}`
+                },
+                body: JSON.stringify({
+                  template: style.secondary_text,
+                  variables: templateVariables // Pass variables for template rendering
+                })
+              });
+              if (response.ok) {
+                style.secondary_text = await response.text();
+              } else {
+                console.error(`Error rendering secondary text template (${response.status}):`, await response.text());
+                style.secondary_text = `Template Error: ${style.secondary_text}`;
+              }
+            } catch (e) {
+              console.error("Network or other error during secondary text template evaluation:", style.secondary_text, e);
+              style.secondary_text = `Template Error: ${style.secondary_text}`;
+            }
           }
+
           return style;
         }
       }
@@ -601,18 +652,18 @@ class SummaryCard extends LitElement {
     return css`
       .grid-container {
         display: grid;
-        grid-template-columns: repeat(var(--grid-columns, 3), 1fr);
-        gap: 8px;
+        grid-template-columns: repeat(var(--grid-columns, 6), 1fr);
+        gap: 4px;
       }
 
       .status-card {
         background: var(--ha-card-background, var(--card-background-color, #282828));
-        border-radius: 12px;
+        border-radius: 6px;
         padding: 12px;
         display: flex;
         align-items: center;
         gap: 16px;
-        height: var(--card-height, 85px);
+        height: var(--card-height, 55px);
         box-sizing: border-box;
         cursor: pointer;
         transition: transform 0.2s ease-in-out;
@@ -871,14 +922,14 @@ class SummaryCardEditor extends LitElement {
           .configValue=${"columns"}
           @input="${this._valueChanged}"
           type="text"
-          placeholder="Default: 3"
+          placeholder="Default: 6"
         ></ha-textfield>
         <ha-textfield
-          label="Card Height (e.g. 85px)"
+          label="Card Height (e.g. 55px)"
           .value="${this._config.row_height || ''}"
           .configValue=${"row_height"}
           @input="${this._valueChanged}"
-          placeholder="Default: 85px"
+          placeholder="Default: 55px"
         ></ha-textfield>
 
         <div class="cards-container">
@@ -1005,8 +1056,20 @@ class SummaryCardEditor extends LitElement {
           ></ha-textfield>
         ` : ''}
 
-        <ha-textfield label="Text" .value="${style.text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.text" @input="${this._valueChanged}"></ha-textfield>
-        <ha-textfield label="Secondary Text" .value="${style.secondary_text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" @input="${this._valueChanged}"></ha-textfield>
+        <ha-textfield 
+          label="Text" 
+          .value="${style.text || ''}" 
+          .configValue="cards.${cardIndex}.styles.${styleIndex}.text" 
+          @input="${this._valueChanged}"
+          placeholder="e.g., {{ active_count }} on or {{ states('sensor.outside_temp') | float | round(1) }}°C"
+        ></ha-textfield>
+        <ha-textfield 
+          label="Secondary Text" 
+          .value="${style.secondary_text || ''}" 
+          .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" 
+          @input="${this._valueChanged}"
+          placeholder="e.g., {{ 'All active' if all_active else 'Some off' }}"
+        ></ha-textfield>
         <ha-icon-picker label="Icon" .value="${style.icon || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.icon" @value-changed="${this._valueChanged}"></ha-icon-picker>
         <ha-textfield label="Color" .value="${style.color || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.color" @input="${this._valueChanged}"></ha-textfield>
 
