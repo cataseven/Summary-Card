@@ -129,7 +129,7 @@ class SummaryCardEditor extends LitElement {
     this.requestUpdate('_cardEditorStates');
   }
   
-  _addOrDelete(action, path) {
+  _addOrDelete(action, path, type = null) {
     const newConfig = JSON.parse(JSON.stringify(this._config));
     let current = newConfig;
     
@@ -143,7 +143,16 @@ class SummaryCardEditor extends LitElement {
         if (!current[lastKey]) current[lastKey] = [];
         let newItem;
         if (lastKey === 'cards') {
-            newItem = { domain: 'light', name: 'New Card', styles: [{condition: 'all_inactive', text: 'All Off', icon: 'mdi:power-off', color: 'grey'}] };
+            if (type === 'clock') {
+                // Saat kartı için sadece domain, name ve color alanları oluşturulur.
+                newItem = {
+                    domain: 'clock',
+                    name: 'Clock',
+                    color: 'green', 
+                };
+            } else { // Default to 'domain'
+                newItem = { domain: 'light', name: 'New Card', styles: [{condition: 'all_inactive', text: 'All Off', icon: 'mdi:power-off', color: 'grey'}] };
+            }
             this._cardEditorStates.push(true);
         } else { // styles
             newItem = { condition: 'any_active', text: 'Active' };
@@ -188,9 +197,14 @@ class SummaryCardEditor extends LitElement {
         <div class="cards-container">
           <h3>Cards</h3>
           ${(this._config.cards || []).map((card, cardIndex) => this._renderCard(card, cardIndex))}
-          <mwc-button @click="${() => this._addOrDelete('add', ['cards'])}" outlined>
-            <ha-icon icon="mdi:plus"></ha-icon> Add Domain
-          </mwc-button>
+          <div class="buttons">
+            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'domain')}" outlined>
+              <ha-icon icon="mdi:plus"></ha-icon> Add Domain
+            </mwc-button>
+            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'clock')}" outlined>
+              <ha-icon icon="mdi:clock-plus-outline"></ha-icon> Add Clock
+            </mwc-button>
+          </div>
         </div>
       </div>
     `;
@@ -198,10 +212,12 @@ class SummaryCardEditor extends LitElement {
 
   _renderCard(card, cardIndex) {
     const isOpen = this._cardEditorStates[cardIndex];
+    const isClockCard = card.domain === 'clock';
+
     return html`
       <div class="card-editor">
         <div class="toolbar" @click="${this._toggleCardEditor}" .cardIndex="${cardIndex}">
-          <h4 class="card-title">Card ${cardIndex + 1}: ${card.name || 'New Card'}</h4>
+          <h4 class="card-title">Card ${cardIndex + 1}: ${card.name || (isClockCard ? 'Clock' : 'New Card')}</h4>
           <div class="actions">
             <ha-icon class="toggle-icon" icon="${isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon>
             <ha-icon 
@@ -213,42 +229,55 @@ class SummaryCardEditor extends LitElement {
         </div>
         ${isOpen ? html`
           <div class="card-content">
-            <ha-textfield
-              label="Name"
-              .value="${card.name || ''}"
-              .configValue="cards.${cardIndex}.name"
-              @input="${this._valueChanged}"
-            ></ha-textfield>
-            <ha-select
-              label="Domain"
-              .value="${card.domain || 'light'}"
-              .configValue="cards.${cardIndex}.domain"
-              @selected="${this._valueChanged}"
-              @closed="${(e) => e.stopPropagation()}"
-            >
-              ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d}</mwc-list-item>`)}
-            </ha-select>
-            <ha-textfield
-              label="Included Entities (comma-separated)"
-              .value="${(card.include || []).join(', ')}"
-              .configValue="cards.${cardIndex}.include"
-              @input="${this._valueChanged}"
-              placeholder="light.living_room, light.kitchen"
-            ></ha-textfield>
-            <ha-textfield
-              label="Excluded Entities (comma-separated)"
-              .value="${(card.exclude || []).join(', ')}"
-              .configValue="cards.${cardIndex}.exclude"
-              @input="${this._valueChanged}"
-              placeholder="light.decorative, switch.unused"
-            ></ha-textfield>
-            <div class="styles-container">
-              <h5>Conditions</h5>
-              ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, cardIndex, styleIndex))}
-              <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined>
-                <ha-icon icon="mdi:plus"></ha-icon> Add Condition
-              </mwc-button>
-            </div>
+            ${isClockCard
+              ? html`
+                  <ha-textfield
+                      label="Color"
+                      .value="${card.color || ''}"
+                      .configValue="cards.${cardIndex}.color"
+                      @input="${this._valueChanged}"
+                      placeholder="Default: text color (e.g., dodgerblue)"
+                  ></ha-textfield>
+                `
+              : html`
+                  <ha-textfield
+                    label="Name"
+                    .value="${card.name || ''}"
+                    .configValue="cards.${cardIndex}.name"
+                    @input="${this._valueChanged}"
+                  ></ha-textfield>
+                  <ha-select
+                    label="Domain"
+                    .value="${card.domain || 'light'}"
+                    .configValue="cards.${cardIndex}.domain"
+                    @selected="${this._valueChanged}"
+                    @closed="${(e) => e.stopPropagation()}"
+                  >
+                    ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d}</mwc-list-item>`)}
+                  </ha-select>
+                  <ha-textfield
+                    label="Included Entities (comma-separated)"
+                    .value="${(card.include || []).join(', ')}"
+                    .configValue="cards.${cardIndex}.include"
+                    @input="${this._valueChanged}"
+                    placeholder="light.living_room, light.kitchen"
+                  ></ha-textfield>
+                  <ha-textfield
+                    label="Excluded Entities (comma-separated)"
+                    .value="${(card.exclude || []).join(', ')}"
+                    .configValue="cards.${cardIndex}.exclude"
+                    @input="${this._valueChanged}"
+                    placeholder="light.decorative, switch.unused"
+                  ></ha-textfield>
+                  <div class="styles-container">
+                    <h5>Conditions</h5>
+                    ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, cardIndex, styleIndex))}
+                    <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined>
+                      <ha-icon icon="mdi:plus"></ha-icon> Add Condition
+                    </mwc-button>
+                  </div>
+                `
+            }
           </div>
         ` : ''}
       </div>
@@ -276,7 +305,6 @@ class SummaryCardEditor extends LitElement {
           ${editorConditions.map(c => html`<mwc-list-item .value="${c}">${conditionLabels[c] || c}</mwc-list-item>`)}
         </ha-select>
         <ha-textfield label="Text" .value="${style.text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.text" @input="${this._valueChanged}"></ha-textfield>
-        <!-- YENİ: Secondary Text alanı eklendi -->
         <ha-textfield label="Secondary Text" .value="${style.secondary_text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" @input="${this._valueChanged}"></ha-textfield>
         <ha-icon-picker label="Icon" .value="${style.icon || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.icon" @value-changed="${this._valueChanged}"></ha-icon-picker>
         <ha-textfield label="Color" .value="${style.color || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.color" @input="${this._valueChanged}"></ha-textfield>
@@ -298,10 +326,10 @@ class SummaryCardEditor extends LitElement {
       .delete-btn:hover { color: var(--primary-text-color); }
       ha-textfield, ha-select, ha-icon-picker { display: block; margin-bottom: 8px; }
       mwc-button { margin-top: 8px; }
+      .buttons { display: flex; gap: 8px; }
     `;
   }
 }
-
 customElements.define("summary-card-editor", SummaryCardEditor);
 
 
@@ -319,6 +347,24 @@ const DOMAIN_STATE_MAP = {
 };
 
 class SummaryCard extends LitElement {
+  
+  connectedCallback() {
+    super.connectedCallback();
+    this.updateInterval = setInterval(() => {
+        // Only request update if there's a clock card to prevent unnecessary re-renders
+        if (this.config && this.config.cards.some(c => c.domain === 'clock')) {
+            this.requestUpdate();
+        }
+    }, 1000); // Update every second for a responsive clock
+  }
+
+  disconnectedCallback() {
+      super.disconnectedCallback();
+      if (this.updateInterval) {
+          clearInterval(this.updateInterval);
+          this.updateInterval = null;
+      }
+  }
 
   static async getConfigElement() {
     return document.createElement('summary-card-editor');
@@ -434,6 +480,15 @@ class SummaryCard extends LitElement {
     this.config = config;
   }
 
+  _handleClick(cardConfig) {
+    const event = new CustomEvent('hass-more-info', {
+        bubbles: true,
+        composed: true,
+        detail: { entityId: cardConfig.entity || (cardConfig.domain ? `${cardConfig.domain}.summary` : null) },
+    });
+    this.dispatchEvent(event);
+  }
+
   render() {
     if (!this.hass || !this.config) return html``;
 
@@ -445,6 +500,28 @@ class SummaryCard extends LitElement {
   }
 
   _renderCard(cardConfig) {
+    if (cardConfig.domain === 'clock') {
+        const now = new Date();
+        const primaryText = now.toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit' });
+        const datePart = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
+        const dayPart = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now);
+        const secondaryText = `${datePart}, ${dayPart}`;
+        // Yapılandırmadan gelen rengi kullan, yoksa varsayılan rengi kullan.
+        const iconColor = cardConfig.color || 'green';
+
+        return html`
+            <div class="status-card" style="--icon-color: ${iconColor};" @click="${() => this._handleClick(cardConfig)}">
+                <div class="icon">
+                    <ha-icon icon="mdi:clock"></ha-icon>
+                </div>
+                <div class="info">
+                    <div class="primary-text">${primaryText}</div>
+                    <div class="secondary-text">${secondaryText}</div>
+                </div>
+            </div>
+        `;
+    }
+
     const entities = this._getEntities(cardConfig);
     const style = this._getStyleForEntities(entities, cardConfig);
 
@@ -453,13 +530,12 @@ class SummaryCard extends LitElement {
     }
 
     return html`
-      <div class="status-card" style="--icon-color: ${style.color || "var(--primary-text-color)"};">
+      <div class="status-card" style="--icon-color: ${style.color || "var(--primary-text-color)"};" @click="${() => this._handleClick(cardConfig)}">
         <div class="icon">
           <ha-icon icon="${style.icon || "mdi:help-circle"}"></ha-icon>
         </div>
         <div class="info">
           <div class="primary-text">${style.text || cardConfig.name}</div>
-          <!-- DEĞİŞİKLİK: secondary_text artık stil kuralından geliyor -->
           <div class="secondary-text">${style.secondary_text || ""}</div>
         </div>
       </div>
@@ -532,7 +608,6 @@ class SummaryCard extends LitElement {
             .replace('{inactive_count}', inactiveCount)
             .replace('{unavailable_count}', unavailableCount);
         }
-        // YENİ: secondary_text de değişkenleri destekliyor
         if (style.secondary_text) {
           style.secondary_text = style.secondary_text
             .replace('{active_count}', activeCount)
@@ -561,6 +636,7 @@ class SummaryCard extends LitElement {
         gap: 16px;
         height: var(--card-height, 85px);
         box-sizing: border-box;
+        cursor: pointer;
       }
       .icon {
         position: relative;
