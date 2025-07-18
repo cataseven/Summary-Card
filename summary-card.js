@@ -6,7 +6,8 @@ import {
 
 const editorDomains = [
   'light', 'switch', 'binary_sensor', 'climate', 'cover',
-  'media_player', 'person', 'alarm_control_panel', 'lock', 'vacuum', 'sensor'
+  'media_player', 'person', 'alarm_control_panel', 'lock', 'vacuum', 'sensor',
+  'camera' // Added camera domain here
 ];
 
 const editorConditions = ['any_active', 'all_inactive', 'any_unavailable', 'any_inactive', 'all_active'];
@@ -57,6 +58,9 @@ const DOMAIN_STATE_MAP = {
   },
   vacuum: {
     active: ['cleaning', 'paused', 'returning', 'error']
+  },
+  camera: { // Added camera domain and its active state
+    active: ['streaming', 'on', 'idle']
   },
 };
 
@@ -291,6 +295,26 @@ class SummaryCard extends LitElement {
           condition: 'all_inactive',
           text: 'All Docked',
           icon: 'mdi:robot-vacuum-variant',
+          color: 'green'
+        }, ],
+      },
+      { // Added a default stub config for camera
+        domain: 'camera',
+        name: 'Cameras',
+        styles: [{
+          condition: 'any_unavailable',
+          text: 'Unavailable',
+          icon: 'mdi:camera-off',
+          color: 'grey'
+        }, {
+          condition: 'any_active',
+          text: '{active_count} streaming',
+          icon: 'mdi:camera-wireless',
+          color: 'orange'
+        }, {
+          condition: 'all_inactive',
+          text: 'All idle',
+          icon: 'mdi:camera',
           color: 'green'
         }, ],
       }, ],
@@ -827,7 +851,9 @@ class SummaryCardEditor extends LitElement {
     newConfig.cards[cardIndex].styles[styleIndex].template_conditions.push('');
     this.setConfig(newConfig);
     this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: newConfig },
+      detail: {
+        config: newConfig
+      },
       bubbles: true,
       composed: true,
     }));
