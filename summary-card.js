@@ -338,11 +338,11 @@ const DOMAIN_STATE_MAP = {
   switch: { active: ['on'] },
   binary_sensor: { active: ['on'] },
   climate: { active: ['heat', 'cool', 'heat_cool', 'auto', 'dry', 'fan_only'] },
-  cover: { active: ['open', 'opening', 'closing'] },
-  media_player: { active: ['playing', 'buffering', 'on'] },
+  cover: { active: ['open', 'opening', 'closing', 'stopped'] },
+  media_player: { active: ['playing', 'paused', 'buffering', 'on'] },
   person: { active: ['home'] },
-  alarm_control_panel: { active: ['armed_home', 'armed_away', 'armed_night', 'pending', 'triggered'] },
-  lock: { active: ['unlocked'] },
+  alarm_control_panel: { active: ['armed_home', 'armed_away', 'armed_night', 'pending', 'triggered', 'arming'] },
+  lock: { active: ['unlocked', 'unlocking', 'locking', 'jammed'] },
   vacuum: { active: ['cleaning', 'paused', 'returning', 'error'] },
 };
 
