@@ -62,6 +62,22 @@ const DOMAIN_STATE_MAP = {
 
 class SummaryCard extends LitElement {
 
+  static get properties() {
+    return {
+      hass: {},
+      config: {},
+      _cardComputedStyles: {
+        state: true
+      },
+    };
+  }
+
+  constructor() {
+    super();
+    this._cardComputedStyles = new Map();
+    this._debouncedComputeStyles = this._debounce(() => this._updateAllCardStyles(), 100);
+  }
+
   connectedCallback() {
     super.connectedCallback();
     this.updateInterval = setInterval(() => {
@@ -281,18 +297,44 @@ class SummaryCard extends LitElement {
     };
   }
 
-  static get properties() {
-    return {
-      hass: {},
-      config: {}
-    };
-  }
-
   setConfig(config) {
     if (!config || !config.cards || !Array.isArray(config.cards)) {
       throw new Error("Configuration must be an array of 'cards'.");
     }
     this.config = config;
+    this._cardComputedStyles = new Map();
+    this._debouncedComputeStyles();
+  }
+
+  updated(changedProperties) {
+    if (changedProperties.has('hass') || changedProperties.has('config')) {
+      this._debouncedComputeStyles();
+    }
+  }
+
+  async _updateAllCardStyles() {
+    if (!this.hass || !this.config || !this.config.cards) {
+      return;
+    }
+
+    const newComputedStyles = new Map();
+    const promises = this.config.cards.map(async (cardConfig, index) => {
+      const style = await this._computeCardStyleAsync(cardConfig);
+      newComputedStyles.set(index, style);
+    });
+
+    await Promise.all(promises);
+    this._cardComputedStyles = newComputedStyles;
+    this.requestUpdate('_cardComputedStyles');
+  }
+
+  _debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+      const context = this;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), delay);
+    };
   }
 
   _handleClick(cardConfig) {
@@ -311,12 +353,12 @@ class SummaryCard extends LitElement {
 
     return html`
       <div class="grid-container" style="--grid-columns: ${this.config.columns || 3}; --card-height: ${this.config.row_height || '85px'};">
-        ${this.config.cards.map((cardConfig) => this._renderCard(cardConfig))}
+        ${this.config.cards.map((cardConfig, index) => this._renderCard(cardConfig, index))}
       </div>
     `;
   }
 
-  _renderCard(cardConfig) {
+  _renderCard(cardConfig, index) {
     if (cardConfig.domain === 'clock') {
       const now = new Date();
       const primaryText = now.toLocaleTimeString(navigator.language, {
@@ -345,11 +387,18 @@ class SummaryCard extends LitElement {
       `;
     }
 
-    const entities = this._getEntities(cardConfig);
-    const style = this._getStyleForEntities(entities, cardConfig);
+    const style = this._cardComputedStyles.get(index) || {};
 
-    if (entities.length === 0 && Object.keys(style).length === 0) {
-      return html``;
+    if (Object.keys(style).length === 0) {
+      return html`
+        <div class="status-card" style="--icon-color: var(--primary-text-color);">
+          <div class="icon"><ha-icon icon="mdi:loading"></ha-icon></div>
+          <div class="info">
+            <div class="primary-text">No Condition Match</div>
+            <div class="secondary-text"></div>
+          </div>
+        </div>
+      `;
     }
 
     return html`
@@ -385,92 +434,140 @@ class SummaryCard extends LitElement {
     return [];
   }
 
-  _getStyleForSensorEntities(entities, cardConfig) {
-    for (const rule of cardConfig.styles) {
-      const ruleValue = parseFloat(rule.value);
-      if (rule.condition === 'any_unavailable' && entities.some(e => e.state === 'unavailable')) {
-        return { ...rule
-        };
-      }
-
-      if (isNaN(ruleValue)) continue;
-
-      let conditionMet = false;
-      switch (rule.condition) {
-        case 'above':
-          conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) > ruleValue);
-          break;
-        case 'below':
-          conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) < ruleValue);
-          break;
-        case 'equal':
-          conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) === ruleValue);
-          break;
-        case 'not_equal':
-          conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) !== ruleValue);
-          break;
-      }
-
-      if (conditionMet) {
-        return { ...rule
-        };
-      }
-    }
-    return {};
-  }
-
-  _getStyleForEntities(entities, cardConfig) {
-    if (!cardConfig.styles || !entities || entities.length === 0) {
+  async _computeCardStyleAsync(cardConfig) {
+    if (!this.hass || !cardConfig.styles || !this.hass.states) {
       return {};
     }
 
-    if (cardConfig.domain === 'sensor') {
-      return this._getStyleForSensorEntities(entities, cardConfig);
+    if (cardConfig.domain === 'clock') {
+      const now = new Date();
+      const primaryText = now.toLocaleTimeString(navigator.language, {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const datePart = new Intl.DateTimeFormat('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(now);
+      const dayPart = new Intl.DateTimeFormat('en-US', {
+        weekday: 'long'
+      }).format(now);
+      const secondaryText = `${datePart}, ${dayPart}`;
+      return {
+        icon: 'mdi:clock',
+        text: primaryText,
+        secondary_text: secondaryText,
+        color: cardConfig.color || 'green'
+      };
+    }
+
+    const entities = this._getEntities(cardConfig);
+    if (entities.length === 0) {
+      return {};
     }
 
     const domain = cardConfig.domain;
     const activeStates = DOMAIN_STATE_MAP[domain]?.active || ['on'];
-    const activeEntities = entities.filter(e => activeStates.includes(e.state));
-    const activeCount = activeEntities.length;
-    const unavailableEntities = entities.filter(e => e.state === 'unavailable');
-    const unavailableCount = unavailableEntities.length;
+    const activeCount = entities.filter(e => activeStates.includes(e.state)).length;
+    const unavailableCount = entities.filter(e => e.state === 'unavailable').length;
     const inactiveCount = entities.length - activeCount - unavailableCount;
 
     for (const rule of cardConfig.styles) {
       let conditionMet = false;
-      switch (rule.condition) {
-        case 'any_active':
-          conditionMet = activeCount > 0;
-          break;
-        case 'all_inactive':
-          conditionMet = activeCount === 0 && unavailableCount === 0 && entities.length > 0;
-          break;
-        case 'any_unavailable':
-          conditionMet = unavailableCount > 0;
-          break;
-        case 'any_inactive':
-          conditionMet = inactiveCount > 0;
-          break;
-        case 'all_active':
-          conditionMet = activeCount === entities.length && entities.length > 0;
-          break;
+
+      if (cardConfig.domain === 'sensor') {
+        const ruleValue = parseFloat(rule.value);
+        if (rule.condition === 'any_unavailable' && entities.some(e => e.state === 'unavailable')) {
+          conditionMet = true;
+        } else if (!isNaN(ruleValue)) {
+          switch (rule.condition) {
+            case 'above':
+              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) > ruleValue);
+              break;
+            case 'below':
+              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) < ruleValue);
+              break;
+            case 'equal':
+              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) === ruleValue);
+              break;
+            case 'not_equal':
+              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) !== ruleValue);
+              break;
+          }
+        }
+      } else {
+        switch (rule.condition) {
+          case 'any_active':
+            conditionMet = activeCount > 0;
+            break;
+          case 'all_inactive':
+            conditionMet = activeCount === 0 && unavailableCount === 0 && entities.length > 0;
+            break;
+          case 'any_unavailable':
+            conditionMet = unavailableCount > 0;
+            break;
+          case 'any_inactive':
+            conditionMet = inactiveCount > 0;
+            break;
+          case 'all_active':
+            conditionMet = activeCount === entities.length && entities.length > 0;
+            break;
+        }
       }
+
       if (conditionMet) {
-        let style = { ...rule
-        };
-        if (style.text) {
-          style.text = style.text
-            .replace('{active_count}', activeCount)
-            .replace('{inactive_count}', inactiveCount)
-            .replace('{unavailable_count}', unavailableCount);
+        const templateConditions = rule.template_conditions || [];
+        let allTemplatesValid = true;
+
+        for (const tpl of templateConditions) {
+          try {
+            const response = await fetch('/api/template', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.hass.auth.data.access_token}`
+              },
+              body: JSON.stringify({
+                template: tpl
+              })
+            });
+
+            if (!response.ok) {
+              console.error(`Backend template evaluation API error (${response.status}):`, await response.text());
+              allTemplatesValid = false;
+              break;
+            }
+
+            const result = await response.text();
+            if (result.trim().toLowerCase() !== 'true') {
+              allTemplatesValid = false;
+              break;
+            }
+          } catch (e) {
+            console.error("Network or other error during backend template evaluation:", tpl, e);
+            allTemplatesValid = false;
+            break;
+          }
         }
-        if (style.secondary_text) {
-          style.secondary_text = style.secondary_text
-            .replace('{active_count}', activeCount)
-            .replace('{inactive_count}', inactiveCount)
-            .replace('{unavailable_count}', unavailableCount);
+
+        if (allTemplatesValid) {
+          let style = { ...rule
+          };
+          if (style.text) {
+            style.text = style.text
+              .replace('{active_count}', activeCount)
+              .replace('{inactive_count}', inactiveCount)
+              .replace('{unavailable_count}', unavailableCount);
+          }
+          if (style.secondary_text) {
+            style.secondary_text = style.secondary_text
+              .replace('{active_count}', activeCount)
+              .replace('{inactive_count}', inactiveCount)
+              .replace('{unavailable_count}', unavailableCount);
+          }
+          return style;
         }
-        return style;
       }
     }
     return {};
@@ -494,6 +591,11 @@ class SummaryCard extends LitElement {
         height: var(--card-height, 85px);
         box-sizing: border-box;
         cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+      }
+
+      .status-card:hover {
+        transform: translateY(-2px);
       }
 
       .icon {
@@ -532,6 +634,7 @@ class SummaryCard extends LitElement {
 
       .primary-text {
         font-weight: bold;
+        color: var(--primary-text-color);
       }
 
       .secondary-text {
@@ -624,6 +727,13 @@ class SummaryCardEditor extends LitElement {
       } else {
         delete current[lastKey];
       }
+    } else if (path[path.length - 2] === 'template_conditions' && lastKey === String(parseInt(lastKey, 10))) {
+      const index = parseInt(lastKey, 10);
+      if (value === "") {
+        current.splice(index, 1);
+      } else {
+        current[index] = value;
+      }
     } else {
       if (value === "" || value === null || value === undefined) {
         delete current[lastKey];
@@ -680,11 +790,13 @@ class SummaryCardEditor extends LitElement {
           };
         }
         this._cardEditorStates.push(true);
-      } else {
+      } else if (lastKey === 'styles') {
         newItem = {
           condition: 'any_active',
           text: 'Active'
         };
+      } else if (lastKey === 'template_conditions') {
+        newItem = '';
       }
       current[lastKey].push(newItem);
     } else {
@@ -707,6 +819,20 @@ class SummaryCardEditor extends LitElement {
     }));
   }
 
+  _addTemplateCondition(cardIndex, styleIndex) {
+    const newConfig = JSON.parse(JSON.stringify(this._config));
+    if (!newConfig.cards[cardIndex].styles[styleIndex].template_conditions) {
+      newConfig.cards[cardIndex].styles[styleIndex].template_conditions = [];
+    }
+    newConfig.cards[cardIndex].styles[styleIndex].template_conditions.push('');
+    this.setConfig(newConfig);
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true,
+    }));
+  }
+
   render() {
     if (!this.hass || !this._config) return html``;
 
@@ -714,7 +840,7 @@ class SummaryCardEditor extends LitElement {
       <div class="card-config">
         <h3>General Settings</h3>
         <ha-textfield
-          label="Card per Row"
+          label="Cards per Row"
           .value="${this._config.columns || ''}"
           .configValue=${"columns"}
           @input="${this._valueChanged}"
@@ -857,6 +983,32 @@ class SummaryCardEditor extends LitElement {
         <ha-textfield label="Secondary Text" .value="${style.secondary_text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" @input="${this._valueChanged}"></ha-textfield>
         <ha-icon-picker label="Icon" .value="${style.icon || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.icon" @value-changed="${this._valueChanged}"></ha-icon-picker>
         <ha-textfield label="Color" .value="${style.color || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.color" @input="${this._valueChanged}"></ha-textfield>
+
+        <div class="template-conditions-container">
+          <h5>Template Conditions</h5>
+          ${(style.template_conditions || []).map((tpl, i) => html`
+            <div class="template-condition-item">
+              <ha-textfield
+                label="Template Condition ${i + 1}"
+                .value="${tpl}"
+                .configValue="cards.${cardIndex}.styles.${styleIndex}.template_conditions.${i}"
+                @input="${this._valueChanged}"
+                placeholder="{{ is_state('light.living_room', 'on') }}"
+              ></ha-textfield>
+              <ha-icon
+                class="delete-btn"
+                icon="mdi:close"
+                @click="${() => this._addOrDelete('delete', ['cards', cardIndex, 'styles', styleIndex, 'template_conditions', i])}"
+              ></ha-icon>
+            </div>
+          `)}
+          <mwc-button
+            @click="${() => this._addTemplateCondition(cardIndex, styleIndex)}"
+            outlined
+          >
+            <ha-icon icon="mdi:plus"></ha-icon> Add Template Condition
+          </mwc-button>
+        </div>
       </div>
     `;
   }
@@ -866,6 +1018,14 @@ class SummaryCardEditor extends LitElement {
       h3 {
         margin-bottom: 8px;
         font-weight: 500;
+        color: var(--primary-text-color);
+      }
+
+      h5 {
+        margin-top: 16px;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--primary-text-color);
       }
 
       .card-editor,
@@ -874,6 +1034,7 @@ class SummaryCardEditor extends LitElement {
         border-radius: 8px;
         padding: 12px;
         margin-top: 12px;
+        background-color: var(--card-background-color, #282828);
       }
 
       .toolbar {
@@ -893,6 +1054,7 @@ class SummaryCardEditor extends LitElement {
       .card-title {
         flex-grow: 1;
         text-transform: capitalize;
+        color: var(--primary-text-color);
       }
 
       .actions {
@@ -902,19 +1064,20 @@ class SummaryCardEditor extends LitElement {
       }
 
       h4,
-      h5,
       h6 {
         margin: 0;
         font-weight: 500;
+        color: var(--primary-text-color);
       }
 
       .delete-btn {
         cursor: pointer;
         margin-left: 8px;
+        color: var(--secondary-text-color);
       }
 
       .delete-btn:hover {
-        color: var(--primary-text-color);
+        color: var(--error-color, #f44336);
       }
 
       ha-textfield,
@@ -922,19 +1085,53 @@ class SummaryCardEditor extends LitElement {
       ha-icon-picker {
         display: block;
         margin-bottom: 8px;
+        --mdc-text-field-ink-color: var(--primary-text-color);
+        --mdc-text-field-label-ink-color: var(--secondary-text-color);
+        --mdc-text-field-focused-ink-color: var(--primary-color);
+        --mdc-text-field-idle-line-color: var(--divider-color);
+        --mdc-text-field-hover-line-color: var(--primary-text-color);
+        --mdc-select-ink-color: var(--primary-text-color);
+        --mdc-select-label-ink-color: var(--secondary-text-color);
+        --mdc-select-focused-ink-color: var(--primary-color);
+        --mdc-select-idle-line-color: var(--divider-color);
+        --mdc-select-hover-line-color: var(--primary-text-color);
       }
 
       mwc-button {
         margin-top: 8px;
+        --mdc-theme-primary: var(--primary-color);
+        --mdc-button-outline-color: var(--divider-color);
+        --mdc-button-ink-color: var(--primary-text-color);
       }
 
       .buttons {
         display: flex;
         gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .template-conditions-container {
+        margin-top: 16px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--divider-color);
+      }
+
+      .template-condition-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .template-condition-item ha-textfield {
+        flex-grow: 1;
+        margin-bottom: 0;
       }
     `;
   }
 }
+
 customElements.define("summary-card-editor", SummaryCardEditor);
 
 window.customCards = window.customCards || [];
@@ -942,5 +1139,5 @@ window.customCards.push({
   type: "summary-card",
   name: "Summary Card",
   preview: true,
-  description: "A custom card that creates a dynamic grid with filtering and conditional styles, aware of domain-specific states.",
+  description: "A custom card that creates a dynamic grid with filtering and conditional styles, aware of domain-specific states, and supports template conditions.",
 });
