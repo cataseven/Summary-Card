@@ -4,21 +4,30 @@ import {
   css,
 } from "https://unpkg.com/lit-element@2.0.1/lit-element.js?module";
 
+// 'sensor' domaini eklendi
 const editorDomains = [
   'light', 'switch', 'binary_sensor', 'climate', 'cover',
-  'media_player', 'person', 'alarm_control_panel', 'lock', 'vacuum'
+  'media_player', 'person', 'alarm_control_panel', 'lock', 'vacuum', 'sensor'
 ];
 
-// Yeni koşullar eklendi
+// Standart koşullar
 const editorConditions = ['any_active', 'all_inactive', 'any_unavailable', 'any_inactive', 'all_active'];
-
-// Yeni koşullar için etiketler eklendi
 const conditionLabels = {
   'any_active': 'If Any Active',
   'all_inactive': 'If All Inactive',
   'any_unavailable': 'If Any Unavailable',
   'any_inactive': 'If Any Inactive',
   'all_active': 'If All Active'
+};
+
+// Sensor'e özel koşullar ve etiketler
+const sensorConditions = ['above', 'below', 'equal', 'not_equal', 'any_unavailable'];
+const sensorConditionLabels = {
+  'above': 'If Any Above Value',
+  'below': 'If Any Below Value',
+  'equal': 'If Any Equal to Value',
+  'not_equal': 'If Any Not Equal to Value',
+  'any_unavailable': 'If Any Unavailable'
 };
 
 class SummaryCardEditor extends LitElement {
@@ -40,38 +49,23 @@ class SummaryCardEditor extends LitElement {
   }
 
   willUpdate(changedProperties) {
-    // hass ve config nesneleri mevcut olduğunda ve filtreleme işlemi bu oturumda henüz yapılmadıysa çalışır.
     if (this.hass && this._config && !this._didInitialFilter) {
       const defaultConfig = SummaryCard.getStubConfig();
-      
-      // Mevcut yapılandırmanın, varsayılan yapılandırma olup olmadığını kontrol et.
-      // Bu, kullanıcının henüz bir değişiklik yapmadığı ilk kurulum anını tespit eder.
       const isDefaultConfig = JSON.stringify(this._config) === JSON.stringify(defaultConfig);
 
       if (isDefaultConfig) {
-        // Bu ilk yapılandırma ise, mevcut domain'lere göre filtrele.
         const allEntities = Object.values(this.hass.states);
         const presentDomains = new Set(allEntities.map(e => e.entity_id.split('.')[0]));
-
         const filteredCards = defaultConfig.cards.filter(card => presentDomains.has(card.domain));
+        const newConfig = { ...this._config, cards: filteredCards };
 
-        const newConfig = {
-            ...this._config,
-            cards: filteredCards,
-        };
-
-        // UI'daki YAML'ı güncellemek için olayı gönder.
         this.dispatchEvent(new CustomEvent("config-changed", {
             detail: { config: newConfig },
             bubbles: true,
             composed: true,
         }));
-
-        // Editör arayüzünün anında güncellenmesi için bileşenin kendi durumunu da güncelle.
         this.setConfig(newConfig);
       }
-      
-      // Bu editör örneği için kontrolün yapıldığını ve tekrar çalışmayacağını işaretle.
       this._didInitialFilter = true;
     }
   }
@@ -144,17 +138,13 @@ class SummaryCardEditor extends LitElement {
         let newItem;
         if (lastKey === 'cards') {
             if (type === 'clock') {
-                // Saat kartı için sadece domain, name ve color alanları oluşturulur.
-                newItem = {
-                    domain: 'clock',
-                    name: 'Clock',
-                    color: 'green', 
-                };
-            } else { // Default to 'domain'
+                newItem = { domain: 'clock', name: 'Clock', color: 'green' };
+            } else { // 'domain' or new 'sensor'
                 newItem = { domain: 'light', name: 'New Card', styles: [{condition: 'all_inactive', text: 'All Off', icon: 'mdi:power-off', color: 'grey'}] };
             }
             this._cardEditorStates.push(true);
         } else { // styles
+            // Not knowing the domain here, we add a generic default. User will change it.
             newItem = { condition: 'any_active', text: 'Active' };
         }
         current[lastKey].push(newItem);
@@ -217,7 +207,7 @@ class SummaryCardEditor extends LitElement {
     return html`
       <div class="card-editor">
         <div class="toolbar" @click="${this._toggleCardEditor}" .cardIndex="${cardIndex}">
-          <h4 class="card-title">Card ${cardIndex + 1}: ${card.name || (isClockCard ? 'Clock' : 'New Card')}</h4>
+          <h4 class="card-title">Card ${cardIndex + 1}: ${card.name || (isClockCard ? 'Clock' : (card.domain || 'New Card'))}</h4>
           <div class="actions">
             <ha-icon class="toggle-icon" icon="${isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon>
             <ha-icon 
@@ -260,20 +250,20 @@ class SummaryCardEditor extends LitElement {
                     .value="${(card.include || []).join(', ')}"
                     .configValue="cards.${cardIndex}.include"
                     @input="${this._valueChanged}"
-                    placeholder="light.living_room, light.kitchen"
+                    placeholder="e.g. sensor.living_room_temperature"
                   ></ha-textfield>
                   <ha-textfield
                     label="Excluded Entities (comma-separated)"
                     .value="${(card.exclude || []).join(', ')}"
                     .configValue="cards.${cardIndex}.exclude"
                     @input="${this._valueChanged}"
-                    placeholder="light.decorative, switch.unused"
+                    placeholder="e.g. sensor.outside_temperature"
                   ></ha-textfield>
                   <div class="styles-container">
-                    <h5>Conditions</h5>
-                    ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, cardIndex, styleIndex))}
+                    <h5>Scenarios</h5>
+                    ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, card, cardIndex, styleIndex))}
                     <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined>
-                      <ha-icon icon="mdi:plus"></ha-icon> Add Condition
+                      <ha-icon icon="mdi:plus"></ha-icon> Add Scenario
                     </mwc-button>
                   </div>
                 `
@@ -284,11 +274,16 @@ class SummaryCardEditor extends LitElement {
     `;
   }
 
-  _renderStyle(style, cardIndex, styleIndex) {
+  _renderStyle(style, card, cardIndex, styleIndex) {
+    // YENİ: Hangi koşul setinin kullanılacağını belirle
+    const isSensorDomain = card.domain === 'sensor';
+    const conditions = isSensorDomain ? sensorConditions : editorConditions;
+    const labels = isSensorDomain ? sensorConditionLabels : conditionLabels;
+    
     return html`
       <div class="style-editor">
         <div class="toolbar">
-          <h6>Condition ${styleIndex + 1}</h6>
+          <h6>Scenario ${styleIndex + 1}</h6>
           <ha-icon 
             class="delete-btn" 
             icon="mdi:close"
@@ -302,8 +297,19 @@ class SummaryCardEditor extends LitElement {
             @selected="${this._valueChanged}"
             @closed="${(e) => e.stopPropagation()}"
             >
-          ${editorConditions.map(c => html`<mwc-list-item .value="${c}">${conditionLabels[c] || c}</mwc-list-item>`)}
+          ${conditions.map(c => html`<mwc-list-item .value="${c}">${labels[c] || c}</mwc-list-item>`)}
         </ha-select>
+
+        ${isSensorDomain && ['above', 'below', 'equal', 'not_equal'].includes(style.condition) ? html`
+          <ha-textfield 
+            label="Value" 
+            .value="${style.value || ''}" 
+            .configValue="cards.${cardIndex}.styles.${styleIndex}.value" 
+            @input="${this._valueChanged}"
+            placeholder="e.g. 25"
+          ></ha-textfield>
+        ` : ''}
+        
         <ha-textfield label="Text" .value="${style.text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.text" @input="${this._valueChanged}"></ha-textfield>
         <ha-textfield label="Secondary Text" .value="${style.secondary_text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" @input="${this._valueChanged}"></ha-textfield>
         <ha-icon-picker label="Icon" .value="${style.icon || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.icon" @value-changed="${this._valueChanged}"></ha-icon-picker>
@@ -319,7 +325,7 @@ class SummaryCardEditor extends LitElement {
       .toolbar { display: flex; justify-content: space-between; align-items: center; }
       .card-editor > .toolbar { cursor: pointer; }
       .card-content { padding-top: 12px; }
-      .card-title { flex-grow: 1; }
+      .card-title { flex-grow: 1; text-transform: capitalize; }
       .actions { display: flex; align-items: center; color: var(--secondary-text-color); }
       h4, h5, h6 { margin: 0; font-weight: 500; }
       .delete-btn { cursor: pointer; margin-left: 8px; }
@@ -344,6 +350,7 @@ const DOMAIN_STATE_MAP = {
   alarm_control_panel: { active: ['armed_home', 'armed_away', 'armed_night', 'pending', 'triggered', 'arming'] },
   lock: { active: ['unlocked', 'unlocking', 'locking', 'jammed'] },
   vacuum: { active: ['cleaning', 'paused', 'returning', 'error'] },
+  // YENİ: Sensor için 'active' tanımı yok, çünkü özel mantık kullanılacak.
 };
 
 class SummaryCard extends LitElement {
@@ -351,11 +358,10 @@ class SummaryCard extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.updateInterval = setInterval(() => {
-        // Only request update if there's a clock card to prevent unnecessary re-renders
         if (this.config && this.config.cards.some(c => c.domain === 'clock')) {
             this.requestUpdate();
         }
-    }, 1000); // Update every second for a responsive clock
+    }, 1000);
   }
 
   disconnectedCallback() {
@@ -506,14 +512,11 @@ class SummaryCard extends LitElement {
         const datePart = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
         const dayPart = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now);
         const secondaryText = `${datePart}, ${dayPart}`;
-        // Yapılandırmadan gelen rengi kullan, yoksa varsayılan rengi kullan.
         const iconColor = cardConfig.color || 'green';
 
         return html`
             <div class="status-card" style="--icon-color: ${iconColor};" @click="${() => this._handleClick(cardConfig)}">
-                <div class="icon">
-                    <ha-icon icon="mdi:clock"></ha-icon>
-                </div>
+                <div class="icon"><ha-icon icon="mdi:clock"></ha-icon></div>
                 <div class="info">
                     <div class="primary-text">${primaryText}</div>
                     <div class="secondary-text">${secondaryText}</div>
@@ -562,11 +565,47 @@ class SummaryCard extends LitElement {
     return [];
   }
 
+  // YENİ: Sensor için özel stil işleme fonksiyonu
+  _getStyleForSensorEntities(entities, cardConfig) {
+    for (const rule of cardConfig.styles) {
+        const ruleValue = parseFloat(rule.value);
+        if (rule.condition === 'any_unavailable' && entities.some(e => e.state === 'unavailable')) {
+            return { ...rule };
+        }
+        
+        if (isNaN(ruleValue)) continue;
+
+        let conditionMet = false;
+        switch (rule.condition) {
+            case 'above':
+                conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) > ruleValue);
+                break;
+            case 'below':
+                conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) < ruleValue);
+                break;
+            case 'equal':
+                conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) === ruleValue);
+                break;
+            case 'not_equal':
+                 conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) !== ruleValue);
+                 break;
+        }
+
+        if (conditionMet) {
+            return { ...rule }; // Kural eşleşirse stili döndür
+        }
+    }
+    return {}; // Eşleşen kural yoksa boş nesne döndür
+  }
+
   _getStyleForEntities(entities, cardConfig) {
-    let style = {};
-    if (!cardConfig.styles || !entities) {
-        if (!entities || entities.length === 0) return {};
-        return style;
+    if (!cardConfig.styles || !entities || entities.length === 0) {
+        return {};
+    }
+    
+    // YENİ: Domain sensor ise, özel fonksiyona yönlendir
+    if (cardConfig.domain === 'sensor') {
+        return this._getStyleForSensorEntities(entities, cardConfig);
     }
 
     const domain = cardConfig.domain;
@@ -576,11 +615,7 @@ class SummaryCard extends LitElement {
     const unavailableEntities = entities.filter(e => e.state === 'unavailable');
     const unavailableCount = unavailableEntities.length;
     const inactiveCount = entities.length - activeCount - unavailableCount;
-
-    if (entities.length === 0) {
-      return {};
-    }
-
+    
     for (const rule of cardConfig.styles) {
       let conditionMet = false;
       switch (rule.condition) {
@@ -601,7 +636,7 @@ class SummaryCard extends LitElement {
           break;
       }
       if (conditionMet) {
-        style = { ...rule };
+        let style = { ...rule };
         if (style.text) {
           style.text = style.text
             .replace('{active_count}', activeCount)
@@ -617,7 +652,7 @@ class SummaryCard extends LitElement {
         return style;
       }
     }
-    return style;
+    return {};
   }
 
   static get styles() {
