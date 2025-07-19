@@ -55,12 +55,15 @@ Card detects your available domains automatically. You can modify as you want
 ![image7](images/ui1.png)
 
 
-### Card Types
+### HIERARCHY
 
-### Hierarchy: ADD DOMAIN CARD -> SELECT DOMAIN -> ADD SCENARIO -> SET OUTPUTS
-Also you can OPTIONALLY: add template conditions to your scenarios
-Also you can OPTIONALLY: include only spesific entities of the domain
-Also you can OPTIONALLY: exclude spesific entities from the domain
+ADD DOMAIN CARD -> SELECT DOMAIN -> ADD SCENARIO -> SET OUTPUTS<br>
+<p>Also you can OPTIONALLY: add template conditions to your scenarios<br>
+Also you can OPTIONALLY: include only spesific entities of the domain<br>
+Also you can OPTIONALLY: exclude spesific entities from the domain<br>
+
+<br>
+<br>
 
 ### Root Config
 
