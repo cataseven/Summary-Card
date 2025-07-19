@@ -369,34 +369,69 @@ cards:
 A great starting point that covers the most common use case.
 
 ```yaml
+# The card type must always be 'custom:summary-card'.
 type: custom:summary-card
+
+#================================================
+# GENERAL SETTINGS
+#================================================
+# Defines how many cards are displayed in a single row.
 columns: 2
+# Sets the height of each card in pixels.
 row_height: 80px
+
+#================================================
+# CARDS LIST
+# Each section starting with a dash (-) defines a new card.
+#================================================
 cards:
+  # --- EXAMPLE 1: LIGHTS CARD ---
+  # This card tracks all entities in the 'light' domain.
+  # Use 'include' or 'exclude' to specify which lights to track.
   - domain: light
     name: Lights
+
+    # STYLES (SCENARIOS)
+    # The card evaluates these styles from top to bottom and applies the FIRST one that meets the conditions.
+    # Therefore, you should place your most specific or highest-priority conditions at the top.
     styles:
-      - condition: any_active
-        text: '{active_count} On'
+      # Scenario 1: Is at least one light currently on?
+      - condition: if_any_on
+        # The 'text' field supports templates. '{{ active_count }}' is a built-in variable
+        # that shows the number of entities in an "active" state (e.g., 'on').
+        text: '{{ active_count }} On'
         icon: mdi:lightbulb-on
-        color: 'rgb(255, 193, 7)' # Amber
-      - condition: all_inactive
+        color: 'rgb(255, 193, 7)' # Amber color for the icon
+
+      # Scenario 2: Are all lights off? (And not unavailable)
+      # This acts as the default state if no other condition is met.
+      - condition: if_all_off
         text: All Off
         icon: mdi:lightbulb-off-outline
+        # Uses your theme's primary text color.
         color: 'var(--primary-text-color)'
 
+  # --- EXAMPLE 2: SWITCHES CARD ---
+  # This card tracks all entities in the 'switch' domain.
   - domain: switch
     name: Switches
     styles:
+      # Scenario 1 (HIGHEST PRIORITY): Is any switch unavailable/offline?
+      # This condition is checked first to immediately report connectivity issues.
       - condition: any_unavailable
-        text: '{unavailable_count} Offline'
+        # '{{ unavailable_count }}' shows how many entities are unavailable.
+        text: '{{ unavailable_count }} Offline'
         icon: mdi:power-plug-off
         color: 'grey'
-      - condition: any_active
-        text: '{active_count} Active'
+
+      # Scenario 2: If none are unavailable, is at least one switch on?
+      - condition: if_any_on
+        text: '{{ active_count }} Active'
         icon: mdi:power-plug
         color: 'dodgerblue'
-      - condition: all_inactive
+
+      # Scenario 3: If all switches are available and none are on, they must all be off.
+      - condition: if_all_off
         text: All Off
         icon: mdi:power-plug-off-outline
         color: 'var(--primary-text-color)'
@@ -410,56 +445,73 @@ type: custom:summary-card
 columns: 4
 row_height: 95px
 cards:
-  # Card 1: A stylish clock for context
+  # --- CARD 1: Clock ---
+  # This is a special card that doesn't track any entities; it simply displays the current time.
   - domain: clock
-    color: 'var(--primary-color)' # Use theme's primary color
+    # Uses your theme's primary color for the icon.
+    color: 'var(--primary-color)'
 
-  # Card 2: A detailed summary of who is home
+  # --- CARD 2: Person Status Summary ---
+  # This card tracks entities in the 'person' domain to summarize who is at home.
   - domain: person
     name: People
     styles:
-      # Rule 1: Show how many people are home
-      - condition: any_active # For 'person' domain, 'home' is the active state
-        text: '{active_count} at Home'
+      # Rule 1: If at least one person is home...
+      # For the 'person' domain, the 'home' state is considered "active".
+      - condition: if_any_at_home
+        # The '{{ active_count }}' variable shows the number of entities in an active state.
+        text: '{{ active_count }} at Home'
         icon: mdi:home-account
         color: '#4CAF50' # Green
-      # Rule 2: If no one is home, show this
-      - condition: all_inactive
+
+      # Rule 2: If everyone is away...
+      - condition: if_everyone_away
         text: Everyone Away
         icon: mdi:home-export-outline
         color: '#FF9800' # Orange
 
-  # Card 3: A security overview for doors and windows
+  # --- CARD 3: Security (Door/Window) Summary ---
+  # This card only tracks the specified door and window sensors.
   - domain: binary_sensor
     name: Security
-    # We only want to see sensors that report open/close states
+    # With 'include', only the status of sensors in this list is considered.
     include:
       - binary_sensor.front_door
       - binary_sensor.back_door
       - binary_sensor.living_room_window
     styles:
-      - condition: any_active # 'on' state means a door/window is open
-        text: '{active_count} Open!'
+      # Rule 1: If any door or window is open...
+      # For 'binary_sensor', the 'on' (true) state is considered "active".
+      - condition: if_any_true
+        text: '{{ active_count }} Open!'
         secondary_text: Unsecured
         icon: mdi:shield-alert
         color: 'crimson'
-      - condition: all_inactive
+
+      # Rule 2: If all doors and windows are closed...
+      - condition: if_all_false
         text: All Secure
         secondary_text: House is locked down
         icon: mdi:shield-check
         color: 'teal'
 
-  # Card 4: Media Players - but ignore the one in the guest room
+  # --- CARD 4: Media Player Summary ---
+  # This card summarizes media players, EXCLUDING the one in the guest room.
   - domain: media_player
     name: Media
+    # With 'exclude', entities in this list are not included in the summary calculation.
     exclude:
       - media_player.guest_room_display
     styles:
-      - condition: any_active # 'playing' or 'on' are active states
-        text: '{active_count} Playing'
+      # Rule 1: If any media player is active...
+      # For 'media_player', states like 'playing' or 'on' are considered "active".
+      - condition: if_any_playing
+        text: '{{ active_count }} Playing'
         icon: mdi:cast-connected
         color: 'deepskyblue'
-      - condition: all_inactive
+
+      # Rule 2: If all media players are idle...
+      - condition: if_all_idle
         text: All Idle
         icon: mdi:cast
         color: 'var(--secondary-text-color)'
@@ -473,21 +525,33 @@ Do you have plant moisture sensors? You can create a card to tell you when your 
 type: custom:summary-card
 columns: 1
 cards:
+  # --- PLANT CARE CARD ---
+  # This card summarizes the status of multiple plant moisture sensors.
   - domain: binary_sensor
     name: Plant Care
-    # Assuming your plant sensors all have 'moisture' in their entity_id
-    # You would use the 'include' property to list them specifically.
+    # You should list the entity_ids of your own plant moisture sensors in the 'include' section.
+    # This list ensures that only the specified sensors are tracked.
     include:
       - binary_sensor.fiddle_leaf_fig_moisture
       - binary_sensor.snake_plant_moisture
       - binary_sensor.monstera_moisture
+
+    # STYLES (SCENARIOS)
+    # The card evaluates conditions from top to bottom and applies the first style that matches.
     styles:
-      - condition: any_active # 'on' means a plant is dry and needs water
-        text: '{active_count} Thirsty Plant(s)'
+      # Rule 1: Does any plant need water?
+      # For a 'binary_sensor', the 'on' (true) state is considered "active".
+      # In this example, an 'on' state from the sensor means the soil is dry.
+      - condition: if_any_true
+        # The '{{ active_count }}' variable shows the number of plants that need water.
+        text: '{{ active_count }} Thirsty Plant(s)'
         secondary_text: Time to get the watering can!
         icon: mdi:water-alert
         color: '#E53935' # Red
-      - condition: all_inactive
+
+      # Rule 2: Are all plants sufficiently watered?
+      # If the above condition is not met, this will be shown as the default state.
+      - condition: if_all_false
         text: Plants are Happy
         secondary_text: All watered and content
         icon: mdi:leaf
