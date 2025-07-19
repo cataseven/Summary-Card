@@ -20,10 +20,10 @@ const DOMAIN_CONDITIONS = {
     any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   binary_sensor: {
-    if_any_detected: { label: 'If Any Detected', logic: 'any_active' },
-    if_all_clear: { label: 'If All Clear', logic: 'all_inactive' },
-    if_any_clear: { label: 'If Any Clear', logic: 'any_inactive' },
-    if_all_detected: { label: 'If All Detected', logic: 'all_active' },
+    if_any_true: { label: 'If Any True/On', logic: 'any_active' },
+    if_all_false: { label: 'If All False/Off', logic: 'all_inactive' },
+    if_any_false: { label: 'If Any False/Off', logic: 'any_inactive' },
+    if_all_true: { label: 'If All True/On', logic: 'all_active' },
     any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   cover: {
@@ -62,10 +62,10 @@ const DOMAIN_CONDITIONS = {
       any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   vacuum: {
-      if_any_cleaning: { label: 'If Any Cleaning', logic: 'any_active' },
-      if_all_docked: { label: 'If All Docked', logic: 'all_inactive' },
-      if_any_docked: { label: 'If Any Docked', logic: 'any_inactive' },
-      if_all_cleaning: { label: 'If All Cleaning', logic: 'all_active' },
+      if_any_docked: { label: 'If Any Docked', logic: 'any_active' },
+      if_all_not_docked: { label: 'If All Not Docked', logic: 'all_inactive' },
+      if_any_not_docked: { label: 'If Any Not Docked', logic: 'any_inactive' },
+      if_all_docked: { label: 'If All Docked', logic: 'all_active' },
       any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   camera: {
@@ -96,14 +96,14 @@ const editorDomains = Object.keys(DOMAIN_CONDITIONS);
 const DOMAIN_STATE_MAP = {
   light: { active: ['on'] },
   switch: { active: ['on'] },
-  binary_sensor: { active: ['on'] },
+  binary_sensor: { active: ['on', 'true'] },
   climate: { active: ['heat', 'cool', 'heat_cool', 'auto', 'dry', 'fan_only'] },
   cover: { active: ['open', 'opening', 'closing', 'stopped'] },
   media_player: { active: ['playing', 'paused', 'buffering', 'on'] },
   person: { active: ['home'] },
   alarm_control_panel: { active: ['armed_home', 'armed_away', 'armed_night', 'pending', 'triggered', 'arming'] },
   lock: { active: ['unlocked', 'unlocking', 'locking', 'jammed'] },
-  vacuum: { active: ['cleaning', 'paused', 'returning', 'error'] },
+  vacuum: { active: ['charging', 'docked'] },
   camera: { active: ['streaming', 'on', 'idle'] },
 };
 
@@ -166,8 +166,8 @@ class SummaryCard extends LitElement {
         {
           domain: 'binary_sensor', name: 'Sensors', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:alert-circle-outline', color: 'grey' },
-            { condition: 'if_any_detected', text: '{{ active_count }} detected', icon: 'mdi:alert-circle', color: 'orange' },
-            { condition: 'if_all_clear', text: 'All Clear', icon: 'mdi:check-circle', color: 'green' }
+            { condition: 'if_any_true', text: '{{ active_count }} detected', icon: 'mdi:alert-circle', color: 'orange' },
+            { condition: 'if_all_false', text: 'All Clear', icon: 'mdi:check-circle', color: 'green' }
           ],
         },
         {
@@ -215,7 +215,7 @@ class SummaryCard extends LitElement {
         {
           domain: 'vacuum', name: 'Vacuums', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:robot-vacuum-variant-alert', color: 'grey' },
-            { condition: 'if_any_cleaning', text: '{{ active_count }} cleaning', icon: 'mdi:robot-vacuum-variant', color: 'dodgerblue' },
+            { condition: 'if_any_not_docked', text: '{{ active_count }} cleaning', icon: 'mdi:robot-vacuum-variant', color: 'dodgerblue' },
             { condition: 'if_all_docked', text: 'All Docked', icon: 'mdi:robot-vacuum-variant', color: 'green' }
           ],
         },
