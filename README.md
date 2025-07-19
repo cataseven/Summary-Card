@@ -217,6 +217,199 @@ cards:
         color: 'var(--secondary-text-color)'
 ```
 
+```yaml
+type: custom:summary-card # Specifies the card type.
+columns: "6"
+row_height: 60px
+cards:
+  - domain: switch # The domain of the entities to be monitored (e.g., switch, light, sensor).
+    name: Kitchen Wall Socket # A friendly name for the card.
+    include: # only this entity will be listened
+      - switch.kitchen
+    styles: 
+      # Style for when the socket is unavailable.
+      - condition: any_unavailable # If any of the included entities are unavailable.
+        text: Kitchen Wall Socket is Unavailable # The main text to display.
+        secondary_text: Check Device # The smaller text below the main text.
+        icon: mdi:lightning-bolt # The icon to show.
+        color: red # The color of the icon.
+      # Style for when the socket is off and drawing no power.
+      - condition: all_inactive # If all of the included entities are off.
+        text: Kitchen Wall Socket is Off
+        secondary_text: Secure
+        icon: mdi:lightning-bolt
+        color: green
+        template_conditions: # Additional conditions using templates.
+          # This template checks if the 'current' attribute of the switch is 0.
+          - "{{ is_state_attr('switch.kitchen', 'current', 0) }}"
+      # Style for when the socket is on and drawing power.
+      - condition: any_active # If any of the included entities are on.
+        text: Kitchen Wall Socket is On
+        secondary_text: >- # The '>' allows for multi-line strings.
+          Warning! Check the Device! Current value is
+          {{state_attr('switch.kitchen', 'current')}} # Displays the current power draw.
+        icon: mdi:lightning-bolt
+        color: red
+        template_conditions:
+          # This template checks if the 'current' attribute is not 0.
+          - "{{ not is_state_attr('switch.kitchen', 'current', 0) }}"
+  - domain: sensor
+    name: Water Level
+    include:
+      - sensor.current_water_level
+    styles:
+      # Style for when the sensor is unavailable.
+      - condition: any_unavailable
+        text: Water Level is Unavailable
+        secondary_text: Check Device
+        icon: mdi:water-percent-alert
+        color: red
+      # Style for when the water level is at 0.
+      - condition: equal # Condition based on the sensor's value.
+        value: 0 # The value to compare against.
+        text: Water Level is 0
+        secondary_text: Secure
+        icon: mdi:water-percent
+        color: green
+        template_conditions: [] # No extra template conditions needed here.
+      # Style for when the water level is not 0.
+      - condition: not_equal
+        value: "0" # The value to compare against (as a string).
+        text: >-
+          Water Level is {{state_attr('sensor.current_water_level', 'raw_state')}}
+        secondary_text: >-
+          Warning! Check the Engine Room! Current value is
+          {{state_attr('sensor.current_water_level', 'raw_state')}}
+        icon: mdi:water-percent-alert
+        color: red
+        template_conditions: []
+  - domain: cover
+    name: Shutters & Garage
+    styles:
+      # Style for when the garage door is open.
+      - condition: any_active
+        text: Garage Door is Open
+        secondary_text: Warning!
+        icon: mdi:garage-alert-variant
+        color: red
+        template_conditions:
+          # Checks if the garage door binary sensor is 'on'.
+          - "{{ is_state('binary_sensor.garage_door', 'on') }}"
+      # Style for when all shutters are closed and available.
+      - condition: all_inactive
+        text: All Shutters are Closed
+        secondary_text: Secure
+        icon: mdi:window-shutter
+        color: green
+        template_conditions:
+          # A complex template to check the state of all covers.
+          - >-
+            {% set un_shutters = states.cover | selectattr('state', 'eq', 'unavailable') | map(attribute='entity_id') | list %}
+            {% set open_shutters = states.cover | selectattr('state', 'ne', 'unavailable') | selectattr('attributes.current_position', 'ge', 1) | map(attribute='entity_id') | list %}
+            {{ open_shutters | length == 0 and un_shutters | length == 0 }}
+      # Style for when any shutter is open during the night.
+      - condition: any_active
+        text: Shutters Open (Night)
+        secondary_text: Check Security
+        icon: mdi:window-shutter-open
+        color: red
+        template_conditions:
+          # Checks if the current time is between midnight and 5 AM.
+          - "{{ now().hour >= 0 and now().hour < 5 }}"
+      # Style for when any shutter is open and the family is away.
+      - condition: any_active
+        text: Shutters Open (Away)
+        secondary_text: Check Security
+        icon: mdi:window-shutter-open
+        color: red
+        template_conditions:
+          - "{{ is_state('group.family', 'away') }}"
+      # Style for when any shutter is unavailable and the family is away.
+      - condition: any_unavailable
+        text: Unavailable Shutters (Away)
+        secondary_text: Immediate Attention Needed!
+        icon: mdi:window-shutter-alert
+        color: red
+        template_conditions:
+          - "{{ is_state('group.family', 'away') }}"
+      # Style for when any shutter is unavailable and the family is home.
+      - condition: any_unavailable
+        text: Unavailable Shutters (Home)
+        secondary_text: Check Devices!
+        icon: mdi:window-shutter-alert
+        color: orange
+        template_conditions:
+          - "{{ is_state('group.family', 'home') }}"
+      # Style for when any shutter is open during the day and the family is home.
+      - condition: any_active
+        text: Shutters Open (Daytime)
+        secondary_text: Enjoy the View!
+        icon: mdi:window-shutter-open
+        color: green
+        template_conditions:
+          # Checks if the family is home and the time is between 5 AM and 11:59 PM.
+          - >-
+            {{ is_state('group.family', 'home') and ('05:00' <= now().strftime('%H:%M') <= '23:59')}}
+  - domain: switch
+    name: Sprinklers
+    include:
+      - switch.zone_1
+      - switch.zone_2
+      - switch.zone_3
+      - switch.zone_4
+      - switch.zone_5
+      - switch.zone_6
+      - switch.zone_7
+      - switch.zone_8
+      - switch.zone_9
+      - switch.zone_10
+      - switch.zone_11
+    styles:
+      # Style for when any sprinkler switch is unavailable.
+      - condition: any_unavailable
+        text: Unavailable
+        secondary_text: Check Device
+        icon: mdi:wifi-off
+        color: red
+      # Style for when all sprinklers are off.
+      - condition: all_inactive
+        text: Sprinklers are Off
+        secondary_text: Secure
+        icon: mdi:sprinkler
+        color: green
+      # Style for when any sprinkler is on.
+      - condition: any_active
+        text: >-
+          {% set zone_switches = expand('switch.zone_1', 'switch.zone_2', 'switch.zone_3', 'switch.zone_4', 'switch.zone_5', 'switch.zone_6', 'switch.zone_7', 'switch.zone_8', 'switch.zone_9', 'switch.zone_10', 'switch.zone_11') %}
+          {% set on_switch = zone_switches | selectattr('state', 'eq', 'on') | first %}
+          {{on_switch.name}} is On # Displays the name of the active sprinkler zone.
+        secondary_text: Watering
+        icon: mdi:sprinkler-variant
+        color: blue
+  - domain: camera
+    name: Cameras
+    styles:
+      # Style for when one or more cameras are offline.
+      - condition: any_unavailable
+        text: One or More Cameras are Offline
+        secondary_text: Check Cameras
+        icon: mdi:video-box-off
+        color: red
+      # Style for when all cameras are online.
+      - condition: all_active
+        text: Cameras are Online
+        secondary_text: Secure
+        icon: mdi:video-check
+        color: green
+    include:
+      - camera.front
+      - camera.garage
+      - camera.side
+      - camera.pool
+  - domain: clock
+    name: Clock
+    color: green # The color of the clock icon.
+```
 ### Example 3: Creative Use Case - Plant Care Dashboard
 Do you have plant moisture sensors? You can create a card to tell you when your plants are thirsty! This assumes your moisture sensors are binary_sensors that are 'on' (active) when the plant is dry.
 
