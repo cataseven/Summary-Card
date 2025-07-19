@@ -4,128 +4,107 @@ import {
   css,
 } from "https://unpkg.com/lit-element@2.0.1/lit-element.js?module";
 
-const editorDomains = [
-  'light', 'switch', 'binary_sensor', 'climate', 'cover',
-  'media_player', 'person', 'alarm_control_panel', 'lock', 'vacuum', 'sensor',
-  'camera'
-];
-
-const editorConditions = ['any_active', 'all_inactive', 'any_unavailable', 'any_inactive', 'all_active'];
-const conditionLabels = {
-  'any_active': 'If Any Active',
-  'all_inactive': 'If All Inactive',
-  'any_unavailable': 'If Any Unavailable',
-  'any_inactive': 'If Any Inactive',
-  'all_active': 'If All Active'
-};
-
-const DOMAIN_CONDITION_LABELS = {
+const DOMAIN_CONDITIONS = {
   light: {
-    any_active: 'If Any On',
-    all_inactive: 'If All Off',
-    any_inactive: 'If Any Off',
-    all_active: 'If All On'
+    if_any_on: { label: 'If Any On', logic: 'any_active' },
+    if_all_off: { label: 'If All Off', logic: 'all_inactive' },
+    if_any_off: { label: 'If Any Off', logic: 'any_inactive' },
+    if_all_on: { label: 'If All On', logic: 'all_active' },
+    any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   switch: {
-    any_active: 'If Any On',
-    all_inactive: 'If All Off',
-    any_inactive: 'If Any Off',
-    all_active: 'If All On'
+    if_any_on: { label: 'If Any On', logic: 'any_active' },
+    if_all_off: { label: 'If All Off', logic: 'all_inactive' },
+    if_any_off: { label: 'If Any Off', logic: 'any_inactive' },
+    if_all_on: { label: 'If All On', logic: 'all_active' },
+    any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   binary_sensor: {
-    any_active: 'If Any Detected',
-    all_inactive: 'If All Clear',
-    any_inactive: 'If Any Clear',
-    all_active: 'If All Detected'
+    if_any_detected: { label: 'If Any Detected', logic: 'any_active' },
+    if_all_clear: { label: 'If All Clear', logic: 'all_inactive' },
+    if_any_clear: { label: 'If Any Clear', logic: 'any_inactive' },
+    if_all_detected: { label: 'If All Detected', logic: 'all_active' },
+    any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   cover: {
-    any_active: 'If Any Open',
-    all_inactive: 'If All Closed',
-    any_inactive: 'If Any Closed',
-    all_active: 'If All Open'
+    if_any_open: { label: 'If Any Open', logic: 'any_active' },
+    if_all_closed: { label: 'If All Closed', logic: 'all_inactive' },
+    if_any_closed: { label: 'If Any Closed', logic: 'any_inactive' },
+    if_all_open: { label: 'If All Open', logic: 'all_active' },
+    any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   media_player: {
-      any_active: 'If Any Playing',
-      all_inactive: 'If All Idle',
-      any_inactive: 'If Any Idle',
-      all_active: 'If All Playing'
+      if_any_playing: { label: 'If Any Playing', logic: 'any_active' },
+      if_all_idle: { label: 'If All Idle', logic: 'all_inactive' },
+      if_any_idle: { label: 'If Any Idle', logic: 'any_inactive' },
+      if_all_playing: { label: 'If All Playing', logic: 'all_active' },
+      any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   person: {
-      any_active: 'If Any At Home',
-      all_inactive: 'If Everyone Away',
-      any_inactive: 'If Any Away',
-      all_active: 'If Everyone At Home'
+      if_any_at_home: { label: 'If Any At Home', logic: 'any_active' },
+      if_everyone_away: { label: 'If Everyone Away', logic: 'all_inactive' },
+      if_any_away: { label: 'If Any Away', logic: 'any_inactive' },
+      if_everyone_at_home: { label: 'If Everyone At Home', logic: 'all_active' },
+      any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   alarm_control_panel: {
-      any_active: 'If Any Armed',
-      all_inactive: 'If All Disarmed',
-      any_inactive: 'If Any Disarmed',
-      all_active: 'If All Armed'
+      if_any_armed: { label: 'If Any Armed', logic: 'any_active' },
+      if_all_disarmed: { label: 'If All Disarmed', logic: 'all_inactive' },
+      if_any_disarmed: { label: 'If Any Disarmed', logic: 'any_inactive' },
+      if_all_armed: { label: 'If All Armed', logic: 'all_active' },
+      any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   lock: {
-      any_active: 'If Any Unlocked',
-      all_inactive: 'If All Locked',
-      any_inactive: 'If Any Locked',
-      all_active: 'If All Locked'
+      if_any_unlocked: { label: 'If Any Unlocked', logic: 'any_active' },
+      if_all_locked: { label: 'If All Locked', logic: 'all_inactive' },
+      if_any_locked: { label: 'If Any Locked', logic: 'any_inactive' },
+      if_all_unlocked: { label: 'If All Unlocked', logic: 'all_active' },
+      any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   vacuum: {
-      any_active: 'If Any Cleaning',
-      all_inactive: 'If All Docked',
-      any_inactive: 'If Any Docked',
-      all_active: 'If All Cleaning'
+      if_any_cleaning: { label: 'If Any Cleaning', logic: 'any_active' },
+      if_all_docked: { label: 'If All Docked', logic: 'all_inactive' },
+      if_any_docked: { label: 'If Any Docked', logic: 'any_inactive' },
+      if_all_cleaning: { label: 'If All Cleaning', logic: 'all_active' },
+      any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   },
   camera: {
-    any_active: 'If Any Streaming',
-    all_inactive: 'If All Idle',
-    any_inactive: 'If Any Idle',
-    all_active: 'If All Streaming'
+    if_any_streaming: { label: 'If Any Streaming', logic: 'any_active' },
+    if_all_idle: { label: 'If All Idle', logic: 'all_inactive' },
+    if_any_idle: { label: 'If Any Idle', logic: 'any_inactive' },
+    if_all_streaming: { label: 'If All Streaming', logic: 'all_active' },
+    any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
+  },
+  climate: {
+    if_any_active: { label: 'If Any Active', logic: 'any_active' },
+    if_all_inactive: { label: 'If All Inactive', logic: 'all_inactive' },
+    if_any_inactive: { label: 'If Any Inactive', logic: 'any_inactive' },
+    if_all_active: { label: 'If All Active', logic: 'all_active' },
+    any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
+  },
+  sensor: {
+    if_any_above: { label: 'If Any Above Value', logic: 'above' },
+    if_any_below: { label: 'If Any Below Value', logic: 'below' },
+    if_any_equal: { label: 'If Any Equal to Value', logic: 'equal' },
+    if_any_not_equal: { label: 'If Any Not Equal to Value', logic: 'not_equal' },
+    any_unavailable: { label: 'If Any Unavailable', logic: 'any_unavailable' }
   }
 };
 
-
-const sensorConditions = ['above', 'below', 'equal', 'not_equal', 'any_unavailable'];
-const sensorConditionLabels = {
-  'above': 'If Any Above Value',
-  'below': 'If Any Below Value',
-  'equal': 'If Any Equal to Value',
-  'not_equal': 'If Any Not Equal to Value',
-  'any_unavailable': 'If Any Unavailable'
-};
+const editorDomains = Object.keys(DOMAIN_CONDITIONS);
 
 const DOMAIN_STATE_MAP = {
-  light: {
-    active: ['on']
-  },
-  switch: {
-    active: ['on']
-  },
-  binary_sensor: {
-    active: ['on']
-  },
-  climate: {
-    active: ['heat', 'cool', 'heat_cool', 'auto', 'dry', 'fan_only']
-  },
-  cover: {
-    active: ['open', 'opening', 'closing', 'stopped']
-  },
-  media_player: {
-    active: ['playing', 'paused', 'buffering', 'on']
-  },
-  person: {
-    active: ['home']
-  },
-  alarm_control_panel: {
-    active: ['armed_home', 'armed_away', 'armed_night', 'pending', 'triggered', 'arming']
-  },
-  lock: {
-    active: ['unlocked', 'unlocking', 'locking', 'jammed']
-  },
-  vacuum: {
-    active: ['cleaning', 'paused', 'returning', 'error']
-  },
-  camera: {
-    active: ['streaming', 'on', 'idle']
-  },
+  light: { active: ['on'] },
+  switch: { active: ['on'] },
+  binary_sensor: { active: ['on'] },
+  climate: { active: ['heat', 'cool', 'heat_cool', 'auto', 'dry', 'fan_only'] },
+  cover: { active: ['open', 'opening', 'closing', 'stopped'] },
+  media_player: { active: ['playing', 'paused', 'buffering', 'on'] },
+  person: { active: ['home'] },
+  alarm_control_panel: { active: ['armed_home', 'armed_away', 'armed_night', 'pending', 'triggered', 'arming'] },
+  lock: { active: ['unlocked', 'unlocking', 'locking', 'jammed'] },
+  vacuum: { active: ['cleaning', 'paused', 'returning', 'error'] },
+  camera: { active: ['streaming', 'on', 'idle'] },
 };
 
 class SummaryCard extends LitElement {
@@ -134,9 +113,7 @@ class SummaryCard extends LitElement {
     return {
       hass: {},
       config: {},
-      _cardComputedStyles: {
-        state: true
-      },
+      _cardComputedStyles: { state: true },
     };
   }
 
@@ -171,217 +148,85 @@ class SummaryCard extends LitElement {
     return {
       columns: 6,
       row_height: '55px',
-      cards: [{
-        domain: 'light',
-        name: 'Lights',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:lightbulb-off',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} on', // Updated to template
-          icon: 'mdi:lightbulb-on',
-          color: 'orange'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Off',
-          icon: 'mdi:lightbulb-off-outline',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'switch',
-        name: 'Switches',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:power-plug-off',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} on', // Updated to template
-          icon: 'mdi:power-plug',
-          color: 'orange'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Off',
-          icon: 'mdi:power-plug-off-outline',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'binary_sensor',
-        name: 'Sensors',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:alert-circle-outline',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} detected', // Updated to template
-          icon: 'mdi:alert-circle',
-          color: 'orange'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Clear',
-          icon: 'mdi:check-circle',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'climate',
-        name: 'Climate',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:thermostat-box',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} active', // Updated to template
-          icon: 'mdi:thermostat',
-          color: 'orange'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Off',
-          icon: 'mdi:power',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'cover',
-        name: 'Covers',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:window-shutter-alert',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} open', // Updated to template
-          icon: 'mdi:window-shutter-open',
-          color: 'red'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Closed',
-          icon: 'mdi:window-shutter',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'media_player',
-        name: 'Media Players',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:cast-off',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} playing', // Updated to template
-          icon: 'mdi:cast-connected',
-          color: 'dodgerblue'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Idle',
-          icon: 'mdi:cast',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'person',
-        name: 'People',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:account-question',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} at home', // Updated to template
-          icon: 'mdi:account-group',
-          color: 'green'
-        }, {
-          condition: 'all_inactive',
-          text: 'Everyone away',
-          icon: 'mdi:account-group-outline',
-          color: 'orange'
-        }, ],
-      }, {
-        domain: 'alarm_control_panel',
-        name: 'Alarm',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:shield-off',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: 'Armed!',
-          icon: 'mdi:shield-check',
-          color: 'red'
-        }, {
-          condition: 'all_inactive',
-          text: 'Disarmed',
-          icon: 'mdi:shield-outline',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'lock',
-        name: 'Locks',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:lock-alert',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} unlocked', // Updated to template
-          icon: 'mdi:lock-open-variant',
-          color: 'red'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Locked',
-          icon: 'mdi:lock',
-          color: 'green'
-        }, ],
-      }, {
-        domain: 'vacuum',
-        name: 'Vacuums',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:robot-vacuum-variant-alert',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} cleaning', // Updated to template
-          icon: 'mdi:robot-vacuum-variant',
-          color: 'dodgerblue'
-        }, {
-          condition: 'all_inactive',
-          text: 'All Docked',
-          icon: 'mdi:robot-vacuum-variant',
-          color: 'green'
-        }, ],
-      },
-      {
-        domain: 'camera',
-        name: 'Cameras',
-        styles: [{
-          condition: 'any_unavailable',
-          text: 'Unavailable',
-          icon: 'mdi:camera-off',
-          color: 'grey'
-        }, {
-          condition: 'any_active',
-          text: '{{ active_count }} streaming', // Updated to template
-          icon: 'mdi:camera-wireless',
-          color: 'orange'
-        }, {
-          condition: 'all_inactive',
-          text: 'All idle',
-          icon: 'mdi:camera',
-          color: 'green'
-        }, ],
-      }, ],
+      cards: [
+        {
+          domain: 'light', name: 'Lights', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:lightbulb-off', color: 'grey' },
+            { condition: 'if_any_on', text: '{{ active_count }} on', icon: 'mdi:lightbulb-on', color: 'orange' },
+            { condition: 'if_all_off', text: 'All Off', icon: 'mdi:lightbulb-off-outline', color: 'green' }
+          ],
+        },
+        {
+          domain: 'switch', name: 'Switches', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:power-plug-off', color: 'grey' },
+            { condition: 'if_any_on', text: '{{ active_count }} on', icon: 'mdi:power-plug', color: 'orange' },
+            { condition: 'if_all_off', text: 'All Off', icon: 'mdi:power-plug-off-outline', color: 'green' }
+          ],
+        },
+        {
+          domain: 'binary_sensor', name: 'Sensors', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:alert-circle-outline', color: 'grey' },
+            { condition: 'if_any_detected', text: '{{ active_count }} detected', icon: 'mdi:alert-circle', color: 'orange' },
+            { condition: 'if_all_clear', text: 'All Clear', icon: 'mdi:check-circle', color: 'green' }
+          ],
+        },
+        {
+          domain: 'climate', name: 'Climate', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:thermostat-box', color: 'grey' },
+            { condition: 'if_any_active', text: '{{ active_count }} active', icon: 'mdi:thermostat', color: 'orange' },
+            { condition: 'if_all_inactive', text: 'All Off', icon: 'mdi:power', color: 'green' }
+          ],
+        },
+        {
+          domain: 'cover', name: 'Covers', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:window-shutter-alert', color: 'grey' },
+            { condition: 'if_any_open', text: '{{ active_count }} open', icon: 'mdi:window-shutter-open', color: 'red' },
+            { condition: 'if_all_closed', text: 'All Closed', icon: 'mdi:window-shutter', color: 'green' }
+          ],
+        },
+        {
+          domain: 'media_player', name: 'Media Players', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:cast-off', color: 'grey' },
+            { condition: 'if_any_playing', text: '{{ active_count }} playing', icon: 'mdi:cast-connected', color: 'dodgerblue' },
+            { condition: 'if_all_idle', text: 'All Idle', icon: 'mdi:cast', color: 'green' }
+          ],
+        },
+        {
+          domain: 'person', name: 'People', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:account-question', color: 'grey' },
+            { condition: 'if_any_at_home', text: '{{ active_count }} at home', icon: 'mdi:account-group', color: 'green' },
+            { condition: 'if_everyone_away', text: 'Everyone away', icon: 'mdi:account-group-outline', color: 'orange' }
+          ],
+        },
+        {
+          domain: 'alarm_control_panel', name: 'Alarm', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:shield-off', color: 'grey' },
+            { condition: 'if_any_armed', text: 'Armed!', icon: 'mdi:shield-check', color: 'red' },
+            { condition: 'if_all_disarmed', text: 'Disarmed', icon: 'mdi:shield-outline', color: 'green' }
+          ],
+        },
+        {
+          domain: 'lock', name: 'Locks', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:lock-alert', color: 'grey' },
+            { condition: 'if_any_unlocked', text: '{{ active_count }} unlocked', icon: 'mdi:lock-open-variant', color: 'red' },
+            { condition: 'if_all_locked', text: 'All Locked', icon: 'mdi:lock', color: 'green' }
+          ],
+        },
+        {
+          domain: 'vacuum', name: 'Vacuums', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:robot-vacuum-variant-alert', color: 'grey' },
+            { condition: 'if_any_cleaning', text: '{{ active_count }} cleaning', icon: 'mdi:robot-vacuum-variant', color: 'dodgerblue' },
+            { condition: 'if_all_docked', text: 'All Docked', icon: 'mdi:robot-vacuum-variant', color: 'green' }
+          ],
+        },
+        {
+          domain: 'camera', name: 'Cameras', styles: [
+            { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:camera-off', color: 'grey' },
+            { condition: 'if_any_streaming', text: '{{ active_count }} streaming', icon: 'mdi:camera-wireless', color: 'orange' },
+            { condition: 'if_all_idle', text: 'All idle', icon: 'mdi:camera', color: 'green' }
+          ],
+        },
+      ],
     };
   }
 
@@ -437,9 +282,9 @@ class SummaryCard extends LitElement {
   }
 
   render() {
-    if (!this.hass || !this.config) return html``;
+    if (!this.hass || !this.config) return html ``;
 
-    return html`
+    return html `
       <div class="grid-container" style="--grid-columns: ${this.config.columns || 6}; --card-height: ${this.config.row_height || '55px'};">
         ${this.config.cards.map((cardConfig, index) => this._renderCard(cardConfig, index))}
       </div>
@@ -449,36 +294,27 @@ class SummaryCard extends LitElement {
   _renderCard(cardConfig, index) {
     if (cardConfig.domain === 'clock') {
       const now = new Date();
-      const primaryText = now.toLocaleTimeString(navigator.language, {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      const datePart = new Intl.DateTimeFormat('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }).format(now);
-      const dayPart = new Intl.DateTimeFormat('en-US', {
-        weekday: 'long'
-      }).format(now);
+      const primaryText = now.toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit' });
+      const datePart = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
+      const dayPart = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now);
       const secondaryText = `${datePart}, ${dayPart}`;
       const iconColor = cardConfig.color || 'green';
 
-      return html`
-          <div class="status-card" style="--icon-color: ${iconColor};" @click="${() => this._handleClick(cardConfig)}">
-            <div class="icon"><ha-icon icon="mdi:clock"></ha-icon></div>
-            <div class="info">
-              <div class="primary-text">${primaryText}</div>
-              <div class="secondary-text">${secondaryText}</div>
-            </div>
+      return html `
+        <div class="status-card" style="--icon-color: ${iconColor};" @click="${() => this._handleClick(cardConfig)}">
+          <div class="icon"><ha-icon icon="mdi:clock"></ha-icon></div>
+          <div class="info">
+            <div class="primary-text">${primaryText}</div>
+            <div class="secondary-text">${secondaryText}</div>
           </div>
+        </div>
       `;
     }
 
     const style = this._cardComputedStyles.get(index) || {};
 
     if (Object.keys(style).length === 0) {
-      return html`
+      return html `
         <div class="status-card" style="--icon-color: var(--primary-text-color);">
           <div class="icon"><ha-icon icon="mdi:loading"></ha-icon></div>
           <div class="info">
@@ -489,7 +325,7 @@ class SummaryCard extends LitElement {
       `;
     }
 
-    return html`
+    return html `
       <div class="status-card" style="--icon-color: ${style.color || "var(--primary-text-color)"};" @click="${() => this._handleClick(cardConfig)}">
         <div class="icon">
           <ha-icon icon="${style.icon || "mdi:help-circle"}"></ha-icon>
@@ -524,35 +360,21 @@ class SummaryCard extends LitElement {
 
   async _computeCardStyleAsync(cardConfig) {
     if (!this.hass || !cardConfig.styles || !this.hass.states) {
-      return {};
+        return {};
     }
 
     if (cardConfig.domain === 'clock') {
-      const now = new Date();
-      const primaryText = now.toLocaleTimeString(navigator.language, {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      const datePart = new Intl.DateTimeFormat('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }).format(now);
-      const dayPart = new Intl.DateTimeFormat('en-US', {
-        weekday: 'long'
-      }).format(now);
-      const secondaryText = `${datePart}, ${dayPart}`;
-      return {
-        icon: 'mdi:clock',
-        text: primaryText,
-        secondary_text: secondaryText,
-        color: cardConfig.color || 'green'
-      };
+        const now = new Date();
+        const primaryText = now.toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit' });
+        const datePart = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
+        const dayPart = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now);
+        const secondaryText = `${datePart}, ${dayPart}`;
+        return { icon: 'mdi:clock', text: primaryText, secondary_text: secondaryText, color: cardConfig.color || 'green' };
     }
 
     const entities = this._getEntities(cardConfig);
     if (entities.length === 0) {
-      return {};
+        return {};
     }
 
     const domain = cardConfig.domain;
@@ -562,155 +384,98 @@ class SummaryCard extends LitElement {
     const inactiveCount = entities.length - activeCount - unavailableCount;
 
     for (const rule of cardConfig.styles) {
-      let conditionMet = false;
+        let conditionMet = false;
 
-      if (cardConfig.domain === 'sensor') {
-        const ruleValue = parseFloat(rule.value);
-        if (rule.condition === 'any_unavailable' && entities.some(e => e.state === 'unavailable')) {
-          conditionMet = true;
-        } else if (!isNaN(ruleValue)) {
-          switch (rule.condition) {
-            case 'above':
-              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) > ruleValue);
-              break;
-            case 'below':
-              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) < ruleValue);
-              break;
-            case 'equal':
-              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) === ruleValue);
-              break;
-            case 'not_equal':
-              conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) !== ruleValue);
-              break;
-          }
-        }
-      } else {
-        switch (rule.condition) {
-          case 'any_active':
-            conditionMet = activeCount > 0;
-            break;
-          case 'all_inactive':
-            conditionMet = activeCount === 0 && unavailableCount === 0 && entities.length > 0;
-            break;
-          case 'any_unavailable':
-            conditionMet = unavailableCount > 0;
-            break;
-          case 'any_inactive':
-            conditionMet = inactiveCount > 0;
-            break;
-          case 'all_active':
-            conditionMet = activeCount === entities.length && entities.length > 0;
-            break;
-        }
-      }
+        const logicType = DOMAIN_CONDITIONS[domain]?.[rule.condition]?.logic;
 
-      if (conditionMet) {
-        const templateConditions = rule.template_conditions || [];
-        let allTemplatesValid = true;
-
-        for (const tpl of templateConditions) {
-          try {
-            const response = await fetch('/api/template', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.hass.auth.data.access_token}`
-              },
-              body: JSON.stringify({
-                template: tpl
-              })
-            });
-
-            if (!response.ok) {
-              console.error(`Backend template evaluation API error (${response.status}):`, await response.text());
-              allTemplatesValid = false;
-              break;
-            }
-
-            const result = await response.text();
-            if (result.trim().toLowerCase() !== 'true') {
-              allTemplatesValid = false;
-              break;
-            }
-          } catch (e) {
-            console.error("Network or other error during backend template evaluation:", tpl, e);
-            allTemplatesValid = false;
-            break;
-          }
+        if (!logicType) {
+          continue;
         }
 
-        if (allTemplatesValid) {
-          let style = { ...rule };
-
-          // Define variables to be passed to the template context
-          // These variables will be available directly as 'active_count', 'inactive_count', 'unavailable_count'
-          const templateVariables = {
-            active_count: activeCount,
-            inactive_count: inactiveCount,
-            unavailable_count: unavailableCount,
-            // If you need direct entity objects or specific attributes for all entities
-            // you might pass something like:
-            // entities_data: entities.map(e => ({ entity_id: e.entity_id, state: e.state, attributes: e.attributes }))
-          };
-
-          // Process text and secondary_text as templates using Home Assistant's /api/template endpoint
-          if (style.text) {
-            try {
-              const response = await fetch('/api/template', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${this.hass.auth.data.access_token}`
-                },
-                body: JSON.stringify({
-                  template: style.text,
-                  variables: templateVariables // Pass variables for template rendering
-                })
-              });
-              if (response.ok) {
-                style.text = await response.text();
-              } else {
-                console.error(`Error rendering text template (${response.status}):`, await response.text());
-                // Fallback or error message if template rendering fails
-                style.text = `Template Error: ${style.text}`;
-              }
-            } catch (e) {
-              console.error("Network or other error during text template evaluation:", style.text, e);
-              style.text = `Template Error: ${style.text}`;
+        if (cardConfig.domain === 'sensor') {
+            const ruleValue = parseFloat(rule.value);
+            if (logicType === 'any_unavailable' && unavailableCount > 0) {
+                conditionMet = true;
+            } else if (!isNaN(ruleValue)) {
+                switch (logicType) {
+                    case 'above': conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) > ruleValue); break;
+                    case 'below': conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) < ruleValue); break;
+                    case 'equal': conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) === ruleValue); break;
+                    case 'not_equal': conditionMet = entities.some(e => !isNaN(parseFloat(e.state)) && parseFloat(e.state) !== ruleValue); break;
+                }
             }
-          }
-
-          if (style.secondary_text) {
-            try {
-              const response = await fetch('/api/template', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${this.hass.auth.data.access_token}`
-                },
-                body: JSON.stringify({
-                  template: style.secondary_text,
-                  variables: templateVariables // Pass variables for template rendering
-                })
-              });
-              if (response.ok) {
-                style.secondary_text = await response.text();
-              } else {
-                console.error(`Error rendering secondary text template (${response.status}):`, await response.text());
-                style.secondary_text = `Template Error: ${style.secondary_text}`;
-              }
-            } catch (e) {
-              console.error("Network or other error during secondary text template evaluation:", style.secondary_text, e);
-              style.secondary_text = `Template Error: ${style.secondary_text}`;
+        } else {
+            switch (logicType) {
+                case 'any_active': conditionMet = activeCount > 0; break;
+                case 'all_inactive': conditionMet = activeCount === 0 && unavailableCount === 0 && entities.length > 0; break;
+                case 'any_unavailable': conditionMet = unavailableCount > 0; break;
+                case 'any_inactive': conditionMet = inactiveCount > 0; break;
+                case 'all_active': conditionMet = activeCount === entities.length && entities.length > 0; break;
             }
-          }
-
-          return style;
         }
-      }
+
+        if (conditionMet) {
+            const templateConditions = rule.template_conditions || [];
+            let allTemplatesValid = true;
+
+            for (const tpl of templateConditions) {
+                try {
+                    const response = await fetch('/api/template', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.hass.auth.data.access_token}` },
+                        body: JSON.stringify({ template: tpl })
+                    });
+                    if (!response.ok) {
+                        console.error(`Backend template evaluation API error (${response.status}):`, await response.text());
+                        allTemplatesValid = false;
+                        break;
+                    }
+                    const result = await response.text();
+                    if (result.trim().toLowerCase() !== 'true') {
+                        allTemplatesValid = false;
+                        break;
+                    }
+                } catch (e) {
+                    console.error("Network or other error during backend template evaluation:", tpl, e);
+                    allTemplatesValid = false;
+                    break;
+                }
+            }
+
+            if (allTemplatesValid) {
+                let style = { ...rule };
+                const templateVariables = { active_count: activeCount, inactive_count: inactiveCount, unavailable_count: unavailableCount };
+
+                if (style.text) {
+                    try {
+                        const response = await fetch('/api/template', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.hass.auth.data.access_token}` },
+                            body: JSON.stringify({ template: style.text, variables: templateVariables })
+                        });
+                        if (response.ok) { style.text = await response.text(); }
+                        else { console.error(`Error rendering text template (${response.status}):`, await response.text()); style.text = `Template Error: ${style.text}`; }
+                    } catch (e) { console.error("Network or other error during text template evaluation:", style.text, e); style.text = `Template Error: ${style.text}`; }
+                }
+
+                if (style.secondary_text) {
+                    try {
+                        const response = await fetch('/api/template', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.hass.auth.data.access_token}` },
+                            body: JSON.stringify({ template: style.secondary_text, variables: templateVariables })
+                        });
+                        if (response.ok) { style.secondary_text = await response.text(); }
+                        else { console.error(`Error rendering secondary text template (${response.status}):`, await response.text()); style.secondary_text = `Template Error: ${style.secondary_text}`; }
+                    } catch (e) { console.error("Network or other error during secondary text template evaluation:", style.secondary_text, e); style.secondary_text = `Template Error: ${style.secondary_text}`; }
+                }
+
+                return style;
+            }
+        }
     }
     return {};
-  }
+}
 
   static get styles() {
     return css`
@@ -719,7 +484,6 @@ class SummaryCard extends LitElement {
         grid-template-columns: repeat(var(--grid-columns, 6), 1fr);
         gap: 4px;
       }
-
       .status-card {
         background: var(--ha-card-background, var(--card-background-color, #282828));
         border-radius: 6px;
@@ -732,11 +496,9 @@ class SummaryCard extends LitElement {
         cursor: pointer;
         transition: transform 0.2s ease-in-out;
       }
-
       .status-card:hover {
         transform: translateY(-2px);
       }
-
       .icon {
         position: relative;
         display: flex;
@@ -746,7 +508,6 @@ class SummaryCard extends LitElement {
         height: 42px;
         flex-shrink: 0;
       }
-
       .icon::before {
         content: '';
         position: absolute;
@@ -756,13 +517,11 @@ class SummaryCard extends LitElement {
         background-color: var(--icon-color, var(--primary-text-color));
         opacity: 0.2;
       }
-
       ha-icon {
         --mdc-icon-size: 24px;
         color: var(--icon-color, var(--primary-text-color));
         position: relative;
       }
-
       .info {
         display: flex;
         flex-direction: column;
@@ -770,12 +529,10 @@ class SummaryCard extends LitElement {
         overflow: hidden;
         text-overflow: ellipsis;
       }
-
       .primary-text {
         font-weight: bold;
         color: var(--primary-text-color);
       }
-
       .secondary-text {
         font-size: 0.9em;
         color: var(--secondary-text-color);
@@ -792,12 +549,8 @@ class SummaryCardEditor extends LitElement {
   static get properties() {
     return {
       hass: {},
-      _config: {
-        state: true
-      },
-      _cardEditorStates: {
-        state: true
-      }
+      _config: { state: true },
+      _cardEditorStates: { state: true }
     };
   }
 
@@ -817,14 +570,10 @@ class SummaryCardEditor extends LitElement {
         const allEntities = Object.values(this.hass.states);
         const presentDomains = new Set(allEntities.map(e => e.entity_id.split('.')[0]));
         const filteredCards = defaultConfig.cards.filter(card => presentDomains.has(card.domain));
-        const newConfig = { ...this._config,
-          cards: filteredCards
-        };
+        const newConfig = { ...this._config, cards: filteredCards };
 
         this.dispatchEvent(new CustomEvent("config-changed", {
-          detail: {
-            config: newConfig
-          },
+          detail: { config: newConfig },
           bubbles: true,
           composed: true,
         }));
@@ -882,9 +631,7 @@ class SummaryCardEditor extends LitElement {
     }
 
     this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: {
-        config: newConfig
-      },
+      detail: { config: newConfig },
       bubbles: true,
       composed: true,
     }));
@@ -911,29 +658,13 @@ class SummaryCardEditor extends LitElement {
       let newItem;
       if (lastKey === 'cards') {
         if (type === 'clock') {
-          newItem = {
-            domain: 'clock',
-            name: 'Clock',
-            color: 'green'
-          };
+          newItem = { domain: 'clock', name: 'Clock', color: 'green' };
         } else {
-          newItem = {
-            domain: 'light',
-            name: 'New Card',
-            styles: [{
-              condition: 'all_inactive',
-              text: 'All Off',
-              icon: 'mdi:power-off',
-              color: 'grey'
-            }]
-          };
+          newItem = { domain: 'light', name: 'New Card', styles: [{ condition: 'if_all_off', text: 'All Off', icon: 'mdi:power-off', color: 'grey' }] };
         }
         this._cardEditorStates.push(true);
       } else if (lastKey === 'styles') {
-        newItem = {
-          condition: 'any_active',
-          text: 'Active'
-        };
+        newItem = { condition: 'if_any_on', text: 'Active' };
       } else if (lastKey === 'template_conditions') {
         newItem = '';
       }
@@ -950,9 +681,7 @@ class SummaryCardEditor extends LitElement {
 
     this.requestUpdate('_cardEditorStates');
     this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: {
-        config: newConfig
-      },
+      detail: { config: newConfig },
       bubbles: true,
       composed: true
     }));
@@ -966,46 +695,27 @@ class SummaryCardEditor extends LitElement {
     newConfig.cards[cardIndex].styles[styleIndex].template_conditions.push('');
     this.setConfig(newConfig);
     this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: {
-        config: newConfig
-      },
+      detail: { config: newConfig },
       bubbles: true,
       composed: true,
     }));
   }
 
   render() {
-    if (!this.hass || !this._config) return html``;
+    if (!this.hass || !this._config) return html ``;
 
-    return html`
+    return html `
       <div class="card-config">
         <h3>General Settings</h3>
-        <ha-textfield
-          label="Cards per Row"
-          .value="${this._config.columns || ''}"
-          .configValue=${"columns"}
-          @input="${this._valueChanged}"
-          type="text"
-          placeholder="Default: 6"
-        ></ha-textfield>
-        <ha-textfield
-          label="Card Height (e.g. 55px)"
-          .value="${this._config.row_height || ''}"
-          .configValue=${"row_height"}
-          @input="${this._valueChanged}"
-          placeholder="Default: 55px"
-        ></ha-textfield>
+        <ha-textfield label="Cards per Row" .value="${this._config.columns || ''}" .configValue=${"columns"} @input="${this._valueChanged}" type="text" placeholder="Default: 6"></ha-textfield>
+        <ha-textfield label="Card Height (e.g. 55px)" .value="${this._config.row_height || ''}" .configValue=${"row_height"} @input="${this._valueChanged}" placeholder="Default: 55px"></ha-textfield>
 
         <div class="cards-container">
           <h3>Cards</h3>
           ${(this._config.cards || []).map((card, cardIndex) => this._renderCard(card, cardIndex))}
           <div class="buttons">
-            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'domain')}" outlined>
-              <ha-icon icon="mdi:plus"></ha-icon> Add Domain
-            </mwc-button>
-            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'clock')}" outlined>
-              <ha-icon icon="mdi:clock-plus-outline"></ha-icon> Add Clock
-            </mwc-button>
+            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'domain')}" outlined><ha-icon icon="mdi:plus"></ha-icon> Add Domain</mwc-button>
+            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'clock')}" outlined><ha-icon icon="mdi:clock-plus-outline"></ha-icon> Add Clock</mwc-button>
           </div>
         </div>
       </div>
@@ -1016,69 +726,32 @@ class SummaryCardEditor extends LitElement {
     const isOpen = this._cardEditorStates[cardIndex];
     const isClockCard = card.domain === 'clock';
 
-    return html`
+    return html `
       <div class="card-editor">
         <div class="toolbar" @click="${this._toggleCardEditor}" .cardIndex="${cardIndex}">
           <h4 class="card-title">Card ${cardIndex + 1}: ${card.name || (isClockCard ? 'Clock' : (card.domain || 'New Card'))}</h4>
           <div class="actions">
             <ha-icon class="toggle-icon" icon="${isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon>
-            <ha-icon
-              class="delete-btn"
-              icon="mdi:close"
-              @click="${(e) => { e.stopPropagation(); this._addOrDelete('delete', ['cards', cardIndex]); }}"
-            ></ha-icon>
+            <ha-icon class="delete-btn" icon="mdi:close" @click="${(e) => { e.stopPropagation(); this._addOrDelete('delete', ['cards', cardIndex]); }}"></ha-icon>
           </div>
         </div>
         ${isOpen ? html`
           <div class="card-content">
-            ${isClockCard
-              ? html`
-                  <ha-textfield
-                    label="Color"
-                    .value="${card.color || ''}"
-                    .configValue="cards.${cardIndex}.color"
-                    @input="${this._valueChanged}"
-                    placeholder="Default: text color (e.g., dodgerblue)"
-                  ></ha-textfield>
-                `
-              : html`
-                  <ha-textfield
-                    label="Name"
-                    .value="${card.name || ''}"
-                    .configValue="cards.${cardIndex}.name"
-                    @input="${this._valueChanged}"
-                  ></ha-textfield>
-                  <ha-select
-                    label="Domain"
-                    .value="${card.domain || 'light'}"
-                    .configValue="cards.${cardIndex}.domain"
-                    @selected="${this._valueChanged}"
-                    @closed="${(e) => e.stopPropagation()}"
-                  >
-                    ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d}</mwc-list-item>`)}
-                  </ha-select>
-                  <ha-textfield
-                    label="Included Entities (comma-separated)"
-                    .value="${(card.include || []).join(', ')}"
-                    .configValue="cards.${cardIndex}.include"
-                    @input="${this._valueChanged}"
-                    placeholder="e.g. sensor.living_room_temperature"
-                  ></ha-textfield>
-                  <ha-textfield
-                    label="Excluded Entities (comma-separated)"
-                    .value="${(card.exclude || []).join(', ')}"
-                    .configValue="cards.${cardIndex}.exclude"
-                    @input="${this._valueChanged}"
-                    placeholder="e.g. sensor.outside_temperature"
-                  ></ha-textfield>
-                  <div class="styles-container">
-                    <h5>Scenarios</h5>
-                    ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, card, cardIndex, styleIndex))}
-                    <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined>
-                      <ha-icon icon="mdi:plus"></ha-icon> Add Scenario
-                    </mwc-button>
-                  </div>
-                `}
+            ${isClockCard ? html`
+              <ha-textfield label="Color" .value="${card.color || ''}" .configValue="cards.${cardIndex}.color" @input="${this._valueChanged}" placeholder="Default: text color (e.g., dodgerblue)"></ha-textfield>
+            ` : html`
+              <ha-textfield label="Name" .value="${card.name || ''}" .configValue="cards.${cardIndex}.name" @input="${this._valueChanged}"></ha-textfield>
+              <ha-select label="Domain" .value="${card.domain || 'light'}" .configValue="cards.${cardIndex}.domain" @selected="${this._valueChanged}" @closed="${(e) => e.stopPropagation()}">
+                ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d}</mwc-list-item>`)}
+              </ha-select>
+              <ha-textfield label="Included Entities (comma-separated)" .value="${(card.include || []).join(', ')}" .configValue="cards.${cardIndex}.include" @input="${this._valueChanged}" placeholder="e.g. sensor.living_room_temperature"></ha-textfield>
+              <ha-textfield label="Excluded Entities (comma-separated)" .value="${(card.exclude || []).join(', ')}" .configValue="cards.${cardIndex}.exclude" @input="${this._valueChanged}" placeholder="e.g. sensor.outside_temperature"></ha-textfield>
+              <div class="styles-container">
+                <h5>Scenarios</h5>
+                ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, card, cardIndex, styleIndex))}
+                <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined><ha-icon icon="mdi:plus"></ha-icon> Add Scenario</mwc-button>
+              </div>
+            `}
           </div>
         ` : ''}
       </div>
@@ -1086,19 +759,17 @@ class SummaryCardEditor extends LitElement {
   }
 
   _renderStyle(style, card, cardIndex, styleIndex) {
-    const isSensorDomain = card.domain === 'sensor';
-    const conditions = isSensorDomain ? sensorConditions : editorConditions;
-    const labels = isSensorDomain ? sensorConditionLabels : conditionLabels;
+    const domain = card.domain;
+    const conditionsForDomain = DOMAIN_CONDITIONS[domain] || {};
+    const conditionKeys = Object.keys(conditionsForDomain);
+    const isSensorDomain = domain === 'sensor';
+    const sensorValueConditions = ['if_any_above', 'if_any_below', 'if_any_equal', 'if_any_not_equal'];
 
     return html`
       <div class="style-editor">
         <div class="toolbar">
           <h6>Scenario ${styleIndex + 1}</h6>
-          <ha-icon
-            class="delete-btn"
-            icon="mdi:close"
-            @click="${() => this._addOrDelete('delete', ['cards', cardIndex, 'styles', styleIndex])}"
-          ></ha-icon>
+          <ha-icon class="delete-btn" icon="mdi:close" @click="${() => this._addOrDelete('delete', ['cards', cardIndex, 'styles', styleIndex])}"></ha-icon>
         </div>
         <ha-select
             label="Condition"
@@ -1106,39 +777,16 @@ class SummaryCardEditor extends LitElement {
             .configValue="cards.${cardIndex}.styles.${styleIndex}.condition"
             @selected="${this._valueChanged}"
             @closed="${(e) => e.stopPropagation()}"
-          >
-
-          ${conditions.map(c => {
-            const domainSpecificLabel = DOMAIN_CONDITION_LABELS[card.domain]?.[c];
-            const fallbackLabel = labels[c];
-            return html`<mwc-list-item .value="${c}">${domainSpecificLabel || fallbackLabel || c}</mwc-list-item>`;
-          })}
+        >
+            ${conditionKeys.map(key => html`<mwc-list-item .value="${key}">${conditionsForDomain[key].label}</mwc-list-item>`)}
         </ha-select>
 
-        ${isSensorDomain && ['above', 'below', 'equal', 'not_equal'].includes(style.condition) ? html`
-          <ha-textfield
-            label="Value"
-            .value="${style.value || ''}"
-            .configValue="cards.${cardIndex}.styles.${styleIndex}.value"
-            @input="${this._valueChanged}"
-            placeholder="e.g. 25"
-          ></ha-textfield>
+        ${isSensorDomain && sensorValueConditions.includes(style.condition) ? html`
+          <ha-textfield label="Value" .value="${style.value || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.value" @input="${this._valueChanged}" placeholder="e.g. 25"></ha-textfield>
         ` : ''}
 
-        <ha-textfield 
-          label="Text" 
-          .value="${style.text || ''}" 
-          .configValue="cards.${cardIndex}.styles.${styleIndex}.text" 
-          @input="${this._valueChanged}"
-          placeholder="e.g., {{ active_count }} on or {{ states('sensor.outside_temp') | float | round(1) }}°C"
-        ></ha-textfield>
-        <ha-textfield 
-          label="Secondary Text" 
-          .value="${style.secondary_text || ''}" 
-          .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" 
-          @input="${this._valueChanged}"
-          placeholder="e.g., {{ 'All active' if all_active else 'Some off' }}"
-        ></ha-textfield>
+        <ha-textfield label="Text" .value="${style.text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.text" @input="${this._valueChanged}" placeholder="e.g., {{ active_count }} on"></ha-textfield>
+        <ha-textfield label="Secondary Text" .value="${style.secondary_text || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.secondary_text" @input="${this._valueChanged}" placeholder="e.g., All active"></ha-textfield>
         <ha-icon-picker label="Icon" .value="${style.icon || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.icon" @value-changed="${this._valueChanged}"></ha-icon-picker>
         <ha-textfield label="Color" .value="${style.color || ''}" .configValue="cards.${cardIndex}.styles.${styleIndex}.color" @input="${this._valueChanged}"></ha-textfield>
 
@@ -1146,26 +794,11 @@ class SummaryCardEditor extends LitElement {
           <h5>Template Conditions</h5>
           ${(style.template_conditions || []).map((tpl, i) => html`
             <div class="template-condition-item">
-              <ha-textfield
-                label="Template Condition ${i + 1}"
-                .value="${tpl}"
-                .configValue="cards.${cardIndex}.styles.${styleIndex}.template_conditions.${i}"
-                @input="${this._valueChanged}"
-                placeholder="{{ is_state('light.living_room', 'on') }}"
-              ></ha-textfield>
-              <ha-icon
-                class="delete-btn"
-                icon="mdi:close"
-                @click="${() => this._addOrDelete('delete', ['cards', cardIndex, 'styles', styleIndex, 'template_conditions', i])}"
-              ></ha-icon>
+              <ha-textfield label="Template Condition ${i + 1}" .value="${tpl}" .configValue="cards.${cardIndex}.styles.${styleIndex}.template_conditions.${i}" @input="${this._valueChanged}" placeholder="{{ is_state('light.living_room', 'on') }}"></ha-textfield>
+              <ha-icon class="delete-btn" icon="mdi:close" @click="${() => this._addOrDelete('delete', ['cards', cardIndex, 'styles', styleIndex, 'template_conditions', i])}"></ha-icon>
             </div>
           `)}
-          <mwc-button
-            @click="${() => this._addTemplateCondition(cardIndex, styleIndex)}"
-            outlined
-          >
-            <ha-icon icon="mdi:plus"></ha-icon> Add Template Condition
-          </mwc-button>
+          <mwc-button @click="${() => this._addTemplateCondition(cardIndex, styleIndex)}" outlined><ha-icon icon="mdi:plus"></ha-icon> Add Template Condition</mwc-button>
         </div>
       </div>
     `;
@@ -1173,119 +806,34 @@ class SummaryCardEditor extends LitElement {
 
   static get styles() {
     return css`
-      h3 {
-        margin-bottom: 8px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-      }
-
-      h5 {
-        margin-top: 16px;
-        margin-bottom: 8px;
-        font-weight: 500;
-        color: var(--primary-text-color);
-      }
-
-      .card-editor,
-      .style-editor {
+      h3, h5, h4, h6 { margin: 0; font-weight: 500; color: var(--primary-text-color); }
+      h3 { margin-bottom: 8px; }
+      h5 { margin-top: 16px; margin-bottom: 8px; }
+      .card-editor, .style-editor {
         border: 1px solid var(--divider-color);
         border-radius: 8px;
         padding: 12px;
         margin-top: 12px;
         background-color: var(--card-background-color, #282828);
       }
-
-      .toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .card-editor > .toolbar {
-        cursor: pointer;
-      }
-
-      .card-content {
-        padding-top: 12px;
-      }
-
-      .card-title {
-        flex-grow: 1;
-        text-transform: capitalize;
-        color: var(--primary-text-color);
-      }
-
-      .actions {
-        display: flex;
-        align-items: center;
-        color: var(--secondary-text-color);
-      }
-
-      h4,
-      h6 {
-        margin: 0;
-        font-weight: 500;
-        color: var(--primary-text-color);
-      }
-
-      .delete-btn {
-        cursor: pointer;
-        margin-left: 8px;
-        color: var(--secondary-text-color);
-      }
-
-      .delete-btn:hover {
-        color: var(--error-color, #f44336);
-      }
-
-      ha-textfield,
-      ha-select,
-      ha-icon-picker {
+      .toolbar { display: flex; justify-content: space-between; align-items: center; }
+      .card-editor > .toolbar { cursor: pointer; }
+      .card-content { padding-top: 12px; }
+      .card-title { flex-grow: 1; text-transform: capitalize; }
+      .actions { display: flex; align-items: center; color: var(--secondary-text-color); }
+      .delete-btn { cursor: pointer; margin-left: 8px; color: var(--secondary-text-color); }
+      .delete-btn:hover { color: var(--error-color, #f44336); }
+      ha-textfield, ha-select, ha-icon-picker {
         display: block;
         margin-bottom: 8px;
         --mdc-text-field-ink-color: var(--primary-text-color);
         --mdc-text-field-label-ink-color: var(--secondary-text-color);
-        --mdc-text-field-focused-ink-color: var(--primary-color);
-        --mdc-text-field-idle-line-color: var(--divider-color);
-        --mdc-text-field-hover-line-color: var(--primary-text-color);
-        --mdc-select-ink-color: var(--primary-text-color);
-        --mdc-select-label-ink-color: var(--secondary-text-color);
-        --mdc-select-focused-ink-color: var(--primary-color);
-        --mdc-select-idle-line-color: var(--divider-color);
-        --mdc-select-hover-line-color: var(--primary-text-color);
       }
-
-      mwc-button {
-        margin-top: 8px;
-        --mdc-theme-primary: var(--primary-color);
-        --mdc-button-outline-color: var(--divider-color);
-        --mdc-button-ink-color: var(--primary-text-color);
-      }
-
-      .buttons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 12px;
-      }
-
-      .template-conditions-container {
-        margin-top: 16px;
-        padding-top: 8px;
-        border-top: 1px dashed var(--divider-color);
-      }
-
-      .template-condition-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-
-      .template-condition-item ha-textfield {
-        flex-grow: 1;
-        margin-bottom: 0;
-      }
+      mwc-button { margin-top: 8px; --mdc-theme-primary: var(--primary-color); }
+      .buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+      .template-conditions-container { margin-top: 16px; padding-top: 8px; border-top: 1px dashed var(--divider-color); }
+      .template-condition-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+      .template-condition-item ha-textfield { flex-grow: 1; margin-bottom: 0; }
     `;
   }
 }
