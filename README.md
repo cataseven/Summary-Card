@@ -495,8 +495,9 @@ cards:
 ```
 
 ### Example 5: Just Icons For Mobile Phone
-No need to words? Icons are ok for your smal screen?
+No need to words? Are icons are ok for your smal screen?
 
+![image10](images/mobile.png)
 ```yaml
 type: custom:summary-card
 columns: "10"
