@@ -19,6 +19,70 @@ const conditionLabels = {
   'all_active': 'If All Active'
 };
 
+const DOMAIN_CONDITION_LABELS = {
+  light: {
+    any_active: 'If Any On',
+    all_inactive: 'If All Off',
+    any_inactive: 'If Any Off',
+    all_active: 'If All On'
+  },
+  switch: {
+    any_active: 'If Any On',
+    all_inactive: 'If All Off',
+    any_inactive: 'If Any Off',
+    all_active: 'If All On'
+  },
+  binary_sensor: {
+    any_active: 'If Any Detected',
+    all_inactive: 'If All Clear',
+    any_inactive: 'If Any Clear',
+    all_active: 'If All Detected'
+  },
+  cover: {
+    any_active: 'If Any Open',
+    all_inactive: 'If All Closed',
+    any_inactive: 'If Any Closed',
+    all_active: 'If All Open'
+  },
+  media_player: {
+      any_active: 'If Any Playing',
+      all_inactive: 'If All Idle',
+      any_inactive: 'If Any Idle',
+      all_active: 'If All Playing'
+  },
+  person: {
+      any_active: 'If Any At Home',
+      all_inactive: 'If Everyone Away',
+      any_inactive: 'If Any Away',
+      all_active: 'If Everyone At Home'
+  },
+  alarm_control_panel: {
+      any_active: 'If Any Armed',
+      all_inactive: 'If All Disarmed',
+      any_inactive: 'If Any Disarmed',
+      all_active: 'If All Armed'
+  },
+  lock: {
+      any_active: 'If Any Unlocked',
+      all_inactive: 'If All Locked',
+      any_inactive: 'If Any Locked',
+      all_active: 'If All Locked'
+  },
+  vacuum: {
+      any_active: 'If Any Cleaning',
+      all_inactive: 'If All Docked',
+      any_inactive: 'If Any Docked',
+      all_active: 'If All Cleaning'
+  },
+  camera: {
+    any_active: 'If Any Streaming',
+    all_inactive: 'If All Idle',
+    any_inactive: 'If Any Idle',
+    all_active: 'If All Streaming'
+  }
+};
+
+
 const sensorConditions = ['above', 'below', 'equal', 'not_equal', 'any_unavailable'];
 const sensorConditionLabels = {
   'above': 'If Any Above Value',
@@ -969,52 +1033,52 @@ class SummaryCardEditor extends LitElement {
           <div class="card-content">
             ${isClockCard
               ? html`
-                    <ha-textfield
-                      label="Color"
-                      .value="${card.color || ''}"
-                      .configValue="cards.${cardIndex}.color"
-                      @input="${this._valueChanged}"
-                      placeholder="Default: text color (e.g., dodgerblue)"
-                    ></ha-textfield>
-                  `
+                  <ha-textfield
+                    label="Color"
+                    .value="${card.color || ''}"
+                    .configValue="cards.${cardIndex}.color"
+                    @input="${this._valueChanged}"
+                    placeholder="Default: text color (e.g., dodgerblue)"
+                  ></ha-textfield>
+                `
               : html`
-                    <ha-textfield
-                      label="Name"
-                      .value="${card.name || ''}"
-                      .configValue="cards.${cardIndex}.name"
-                      @input="${this._valueChanged}"
-                    ></ha-textfield>
-                    <ha-select
-                      label="Domain"
-                      .value="${card.domain || 'light'}"
-                      .configValue="cards.${cardIndex}.domain"
-                      @selected="${this._valueChanged}"
-                      @closed="${(e) => e.stopPropagation()}"
-                    >
-                      ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d}</mwc-list-item>`)}
-                    </ha-select>
-                    <ha-textfield
-                      label="Included Entities (comma-separated)"
-                      .value="${(card.include || []).join(', ')}"
-                      .configValue="cards.${cardIndex}.include"
-                      @input="${this._valueChanged}"
-                      placeholder="e.g. sensor.living_room_temperature"
-                    ></ha-textfield>
-                    <ha-textfield
-                      label="Excluded Entities (comma-separated)"
-                      .value="${(card.exclude || []).join(', ')}"
-                      .configValue="cards.${cardIndex}.exclude"
-                      @input="${this._valueChanged}"
-                      placeholder="e.g. sensor.outside_temperature"
-                    ></ha-textfield>
-                    <div class="styles-container">
-                      <h5>Scenarios</h5>
-                      ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, card, cardIndex, styleIndex))}
-                      <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined>
-                        <ha-icon icon="mdi:plus"></ha-icon> Add Scenario
-                      </mwc-button>
-                    </div>
-                  `}
+                  <ha-textfield
+                    label="Name"
+                    .value="${card.name || ''}"
+                    .configValue="cards.${cardIndex}.name"
+                    @input="${this._valueChanged}"
+                  ></ha-textfield>
+                  <ha-select
+                    label="Domain"
+                    .value="${card.domain || 'light'}"
+                    .configValue="cards.${cardIndex}.domain"
+                    @selected="${this._valueChanged}"
+                    @closed="${(e) => e.stopPropagation()}"
+                  >
+                    ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d}</mwc-list-item>`)}
+                  </ha-select>
+                  <ha-textfield
+                    label="Included Entities (comma-separated)"
+                    .value="${(card.include || []).join(', ')}"
+                    .configValue="cards.${cardIndex}.include"
+                    @input="${this._valueChanged}"
+                    placeholder="e.g. sensor.living_room_temperature"
+                  ></ha-textfield>
+                  <ha-textfield
+                    label="Excluded Entities (comma-separated)"
+                    .value="${(card.exclude || []).join(', ')}"
+                    .configValue="cards.${cardIndex}.exclude"
+                    @input="${this._valueChanged}"
+                    placeholder="e.g. sensor.outside_temperature"
+                  ></ha-textfield>
+                  <div class="styles-container">
+                    <h5>Scenarios</h5>
+                    ${(card.styles || []).map((style, styleIndex) => this._renderStyle(style, card, cardIndex, styleIndex))}
+                    <mwc-button @click="${() => this._addOrDelete('add', ['cards', cardIndex, 'styles'])}" outlined>
+                      <ha-icon icon="mdi:plus"></ha-icon> Add Scenario
+                    </mwc-button>
+                  </div>
+                `}
           </div>
         ` : ''}
       </div>
@@ -1042,8 +1106,13 @@ class SummaryCardEditor extends LitElement {
             .configValue="cards.${cardIndex}.styles.${styleIndex}.condition"
             @selected="${this._valueChanged}"
             @closed="${(e) => e.stopPropagation()}"
-            >
-          ${conditions.map(c => html`<mwc-list-item .value="${c}">${labels[c] || c}</mwc-list-item>`)}
+          >
+
+          ${conditions.map(c => {
+            const domainSpecificLabel = DOMAIN_CONDITION_LABELS[card.domain]?.[c];
+            const fallbackLabel = labels[c];
+            return html`<mwc-list-item .value="${c}">${domainSpecificLabel || fallbackLabel || c}</mwc-list-item>`;
+          })}
         </ha-select>
 
         ${isSensorDomain && ['above', 'below', 'equal', 'not_equal'].includes(style.condition) ? html`
