@@ -153,48 +153,48 @@ class SummaryCard extends LitElement {
           domain: 'light', name: 'Lights', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:lightbulb-off', color: 'grey' },
             { condition: 'if_any_on', text: '{{ active_count }} on', icon: 'mdi:lightbulb-on', color: 'orange' },
-            { condition: 'if_all_off', text: 'All Off', icon: 'mdi:lightbulb-off-outline', color: 'green' }
+            { condition: 'if_all_off', text: 'All Off', icon: 'mdi:lightbulb-off-outline', color: '#4caf50' }
           ],
         },
         {
           domain: 'switch', name: 'Switches', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:power-plug-off', color: 'grey' },
             { condition: 'if_any_on', text: '{{ active_count }} on', icon: 'mdi:power-plug', color: 'orange' },
-            { condition: 'if_all_off', text: 'All Off', icon: 'mdi:power-plug-off-outline', color: 'green' }
+            { condition: 'if_all_off', text: 'All Off', icon: 'mdi:power-plug-off-outline', color: '#4caf50' }
           ],
         },
         {
           domain: 'binary_sensor', name: 'Sensors', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:alert-circle-outline', color: 'grey' },
             { condition: 'if_any_true', text: '{{ active_count }} detected', icon: 'mdi:alert-circle', color: 'orange' },
-            { condition: 'if_all_false', text: 'All Clear', icon: 'mdi:check-circle', color: 'green' }
+            { condition: 'if_all_false', text: 'All Clear', icon: 'mdi:check-circle', color: '#4caf50' }
           ],
         },
         {
           domain: 'climate', name: 'Climate', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:thermostat-box', color: 'grey' },
             { condition: 'if_any_active', text: '{{ active_count }} active', icon: 'mdi:thermostat', color: 'orange' },
-            { condition: 'if_all_inactive', text: 'All Off', icon: 'mdi:power', color: 'green' }
+            { condition: 'if_all_inactive', text: 'All Off', icon: 'mdi:power', color: '#4caf50' }
           ],
         },
         {
           domain: 'cover', name: 'Covers', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:window-shutter-alert', color: 'grey' },
             { condition: 'if_any_open', text: '{{ active_count }} open', icon: 'mdi:window-shutter-open', color: 'red' },
-            { condition: 'if_all_closed', text: 'All Closed', icon: 'mdi:window-shutter', color: 'green' }
+            { condition: 'if_all_closed', text: 'All Closed', icon: 'mdi:window-shutter', color: '#4caf50' }
           ],
         },
         {
           domain: 'media_player', name: 'Media Players', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:cast-off', color: 'grey' },
             { condition: 'if_any_playing', text: '{{ active_count }} playing', icon: 'mdi:cast-connected', color: 'dodgerblue' },
-            { condition: 'if_all_idle', text: 'All Idle', icon: 'mdi:cast', color: 'green' }
+            { condition: 'if_all_idle', text: 'All Idle', icon: 'mdi:cast', color: '#4caf50' }
           ],
         },
         {
           domain: 'person', name: 'People', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:account-question', color: 'grey' },
-            { condition: 'if_any_at_home', text: '{{ active_count }} at home', icon: 'mdi:account-group', color: 'green' },
+            { condition: 'if_any_at_home', text: '{{ active_count }} at home', icon: 'mdi:account-group', color: '#4caf50' },
             { condition: 'if_everyone_away', text: 'Everyone away', icon: 'mdi:account-group-outline', color: 'orange' }
           ],
         },
@@ -202,28 +202,28 @@ class SummaryCard extends LitElement {
           domain: 'alarm_control_panel', name: 'Alarm', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:shield-off', color: 'grey' },
             { condition: 'if_any_armed', text: 'Armed!', icon: 'mdi:shield-check', color: 'red' },
-            { condition: 'if_all_disarmed', text: 'Disarmed', icon: 'mdi:shield-outline', color: 'green' }
+            { condition: 'if_all_disarmed', text: 'Disarmed', icon: 'mdi:shield-outline', color: '#4caf50' }
           ],
         },
         {
           domain: 'lock', name: 'Locks', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:lock-alert', color: 'grey' },
             { condition: 'if_any_unlocked', text: '{{ active_count }} unlocked', icon: 'mdi:lock-open-variant', color: 'red' },
-            { condition: 'if_all_locked', text: 'All Locked', icon: 'mdi:lock', color: 'green' }
+            { condition: 'if_all_locked', text: 'All Locked', icon: 'mdi:lock', color: '#4caf50' }
           ],
         },
         {
           domain: 'vacuum', name: 'Vacuums', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:robot-vacuum-variant-alert', color: 'grey' },
             { condition: 'if_any_not_docked', text: '{{ active_count }} cleaning', icon: 'mdi:robot-vacuum-variant', color: 'dodgerblue' },
-            { condition: 'if_all_docked', text: 'All Docked', icon: 'mdi:robot-vacuum-variant', color: 'green' }
+            { condition: 'if_all_docked', text: 'All Docked', icon: 'mdi:robot-vacuum-variant', color: '#4caf50' }
           ],
         },
         {
           domain: 'camera', name: 'Cameras', styles: [
             { condition: 'any_unavailable', text: 'Unavailable', icon: 'mdi:camera-off', color: 'grey' },
             { condition: 'if_any_streaming', text: '{{ active_count }} streaming', icon: 'mdi:camera-wireless', color: 'orange' },
-            { condition: 'if_all_idle', text: 'All idle', icon: 'mdi:camera', color: 'green' }
+            { condition: 'if_all_idle', text: 'All idle', icon: 'mdi:camera', color: '#4caf50' }
           ],
         },
       ],
@@ -298,7 +298,7 @@ class SummaryCard extends LitElement {
       const datePart = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
       const dayPart = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now);
       const secondaryText = `${datePart}, ${dayPart}`;
-      const iconColor = cardConfig.color || 'green';
+      const iconColor = cardConfig.color || '#4caf50';
 
       return html`
         <div class="status-card" style="--icon-color: ${iconColor};" @click="${() => this._handleClick(cardConfig)}">
@@ -325,9 +325,11 @@ class SummaryCard extends LitElement {
       `;
     }
 
+    // Check if there's any text to display
     const primaryText = style.text || cardConfig.name;
     const secondaryText = style.secondary_text || "";
     const hasText = primaryText || secondaryText;
+
     return html`
       <div class="status-card ${!hasText ? 'icon-only' : ''}" style="--icon-color: ${style.color || "var(--primary-text-color)"};" @click="${() => this._handleClick(cardConfig)}">
         <div class="icon">
@@ -342,6 +344,7 @@ class SummaryCard extends LitElement {
       </div>
     `;
   }
+
 
   _getEntities(cardConfig) {
     if (!this.hass) return [];
@@ -374,7 +377,7 @@ class SummaryCard extends LitElement {
         const datePart = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
         const dayPart = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(now);
         const secondaryText = `${datePart}, ${dayPart}`;
-        return { icon: 'mdi:clock', text: primaryText, secondary_text: secondaryText, color: cardConfig.color || 'green' };
+        return { icon: 'mdi:clock', text: primaryText, secondary_text: secondaryText, color: cardConfig.color || '#4caf50' };
     }
 
     const entities = this._getEntities(cardConfig);
@@ -527,7 +530,7 @@ class SummaryCard extends LitElement {
         opacity: 0.2;
       }
       ha-icon {
-        --mdc-icon-size: 24px;
+        --mdc-icon-size: 32px;
         color: var(--icon-color, var(--primary-text-color));
         position: relative;
       }
@@ -667,7 +670,7 @@ class SummaryCardEditor extends LitElement {
       let newItem;
       if (lastKey === 'cards') {
         if (type === 'clock') {
-          newItem = { domain: 'clock', name: 'Clock', color: 'green' };
+          newItem = { domain: 'clock', name: 'Clock', color: '#4caf50' };
         } else {
           newItem = { domain: 'light', name: 'New Card', styles: [{ condition: 'if_all_off', text: 'All Off', icon: 'mdi:power-off', color: 'grey' }] };
         }
