@@ -5,6 +5,7 @@ Transform your Home Assistant dashboard into a responsive, intelligent, and beau
 
 This is not just another Lovelace card. It's a highly customizable system for building status dashboards that feel alive.
 
+![image8](images/sample.png)
 ---
 
 ## ✨ Features
@@ -44,6 +45,23 @@ type: module
 
 ## ⚙ Configuration Options
 
+### ADDING CARD TO DASHBOARD
+Search from the picker: Summary Card
+Card detects your available domains automatically. You can modify as you want
+![image6](images/picker.png)
+
+
+### UI EDITOR
+![image7](images/ui1.png)
+
+
+### Card Types
+
+### Hierarchy: ADD DOMAIN CARD -> SELECT DOMAIN -> ADD SCENARIO -> SET OUTPUTS
+Also you can OPTIONALLY: add template conditions to your scenarios
+Also you can OPTIONALLY: include only spesific entities of the domain
+Also you can OPTIONALLY: exclude spesific entities from the domain
+
 ### Root Config
 
 | Option        | Type     | Required | Description                                 | Default |
@@ -55,16 +73,14 @@ type: module
 
 ---
 
-### Card Types
-
 #### 1. **Domain Card**
 
 | Option         | Type     | Required | Description                                      |
 | -------------- | -------- | -------- | ------------------------------------------------ |
 | `domain`       | string   | ✅       | Domain like `light`, `switch`, `sensor`, etc.    |
-| `name`         | string   | ❌       | Display name (optional)                          |
-| `include`      | array    | ❌       | List of `entity_id`s to include                  |
-| `exclude`      | array    | ❌       | List of `entity_id`s to exclude                  |
+| `name`         | string   | ❌       | Optional - Display name                        |
+| `include`      | array    | ❌       | Optional - List of `entity_id`s to include. Only consider these entities. Forget the others               |
+| `exclude`      | array    | ❌       | Optional - List of `entity_id`s to exclude. Consider all entities of the domain but exlude this ones                 |
 | `styles`       | array    | ✅       | Array of style rules based on conditions         |
 
 #### 2. **Clock Card**
@@ -122,9 +138,9 @@ For example:
 
 The following are available in any `text` or `secondary_text` string:
 
-- `{{ active_count }}`
-- `{{ inactive_count }}`
-- `{{ unavailable_count }}`
+- `{{ active_count }}` - Returns the number of on/true/active entities of the domain. For example {{ active_count }} people at home = 3 People At Home 
+- `{{ inactive_count }}`- Returns the number of off/false/passive entities of the domain. For example {{ inactive_count }} lights are off = 4 lights are off 
+- `{{ unavailable_count }}`- Returns the number of unavailabel entities of the domain. For example {{ inactive_count }} cameras are diconnected = 2 cameras are disconnected
 
 You can also use full Jinja expressions, including custom Home Assistant state queries inside `template_conditions`.
 
