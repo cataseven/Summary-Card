@@ -494,6 +494,133 @@ cards:
         color: '#388E3C' # Green
 ```
 
+### Example 5: Just Icons For Mobile Phone
+No need to words? Icons are ok for your smal screen?
+
+```yaml
+type: custom:summary-card
+columns: "10"
+row_height: 60px
+cards:
+  - domain: switch
+    include:
+      - switch.kitchen
+    styles:
+      - condition: any_unavailable
+        icon: mdi:lightning-bolt
+        color: red
+      - condition: if_all_off
+        icon: mdi:lightning-bolt
+        color: green
+        template_conditions:
+          - "{{ is_state_attr('switch.kitchen', 'current', 0) }}"
+      - condition: if_any_on
+        icon: mdi:lightning-bolt
+        color: red
+        template_conditions:
+          - "{{ not is_state_attr('switch.kitchen', 'current', 0) }}"
+  - domain: sensor
+    include:
+      - sensor.current_water_level
+    styles:
+      - condition: any_unavailable
+        icon: mdi:water-percent-alert
+        color: red
+      - condition: if_any_equal
+        value: "0"
+        icon: mdi:water-percent
+        color: green
+        template_conditions: []
+      - condition: if_any_not_equal
+        value: "0"
+        icon: mdi:water-percent-alert
+        color: red
+        template_conditions: []
+  - domain: cover
+    styles:
+      - condition: if_any_open
+        icon: mdi:garage-alert-variant
+        color: red
+        template_conditions:
+          - "{{ is_state('binary_sensor.garage_door', 'on') }}"
+      - condition: if_all_closed
+        icon: mdi:window-shutter
+        color: green
+        template_conditions:
+          - >-
+            {% set un_shutters = states.cover | selectattr('state', 'eq',
+            'unavailable') | map(attribute='entity_id') | list %} {% set
+            open_shutters = states.cover | selectattr('state', 'ne',
+            'unavailable') | selectattr('attributes.current_position', 'ge', 1)
+            | map(attribute='entity_id') | list %} {{ open_shutters | length ==
+            0 and un_shutters | length == 0 }}
+      - condition: if_any_open
+        icon: mdi:window-shutter-open
+        color: red
+        template_conditions:
+          - "{{ now().hour >= 0 and now().hour < 5 }}"
+      - condition: if_any_open
+        icon: mdi:window-shutter-open
+        color: red
+        template_conditions:
+          - "{{ is_state('group.family', 'away') }}"
+      - condition: any_unavailable
+        icon: mdi:window-shutter-alert
+        color: red
+        template_conditions:
+          - "{{ is_state('group.family', 'away') }}"
+      - condition: any_unavailable
+        icon: mdi:window-shutter-alert
+        color: orange
+        template_conditions:
+          - "{{ is_state('group.family', 'home') }}"
+      - condition: if_any_open
+        icon: mdi:window-shutter-open
+        color: green
+        template_conditions:
+          - >-
+            {{ is_state('group.family', 'home') and ('05:00' <=
+            now().strftime('%H:%M') <= '23:59')}}
+  - domain: switch
+    include:
+      - switch.zone_1
+      - switch.zone_2
+      - switch.zone_3
+      - switch.zone_4
+      - switch.zone_5
+      - switch.zone_6
+      - switch.zone_7
+      - switch.zone_8
+      - switch.zone_9
+      - switch.zone_10
+      - switch.zone_11
+    styles:
+      - condition: any_unavailable
+        icon: mdi:wifi-off
+        color: red
+      - condition: if_all_off
+        icon: mdi:sprinkler
+        color: green
+      - condition: if_any_on
+        text: >-
+          {% set zone_switches = expand('switch.zone_1', 'switch.zone_2',
+          'switch.zone_3', 'switch.zone_4', 'switch.zone_5', 'switch.zone_6',
+          'switch.zone_7', 'switch.zone_8', 'switch.zone_9', 'switch.zone_10',
+          'switch.zone_11') %} {% set on_switch = zone_switches |
+          selectattr('state', 'eq', 'on') | first %} {{on_switch.name}} is On
+        icon: mdi:sprinkler-variant
+        color: blue
+  - domain: camera
+    styles:
+      - condition: any_unavailable
+        icon: mdi:video-box-off
+        color: red
+      - condition: if_any_streaming
+        icon: mdi:video-check
+        color: green
+
+```
+
 ## 📄 License
 
 MIT © [Your Name or Org]
