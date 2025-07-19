@@ -560,7 +560,7 @@ cards:
 ```
 
 ### Example 5: Just Icons For Mobile Phone
-No need to words? Are icons are ok for your smal screen?
+No need to words? Are icons are ok for your small screen?
 
 ![image10](images/mobile.png)
 ```yaml
