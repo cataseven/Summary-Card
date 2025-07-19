@@ -740,10 +740,10 @@ class SummaryCardEditor extends LitElement {
             ${isClockCard ? html`
               <ha-textfield label="Color" .value="${card.color || ''}" .configValue="cards.${cardIndex}.color" @input="${this._valueChanged}" placeholder="Default: text color (e.g., dodgerblue)"></ha-textfield>
             ` : html`
-              <ha-textfield label="Name" .value="${card.name || ''}" .configValue="cards.${cardIndex}.name" @input="${this._valueChanged}"></ha-textfield>
               <ha-select label="Domain" .value="${card.domain || 'light'}" .configValue="cards.${cardIndex}.domain" @selected="${this._valueChanged}" @closed="${(e) => e.stopPropagation()}">
-                ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d}</mwc-list-item>`)}
+                ${editorDomains.map(d => html`<mwc-list-item .value="${d}">${d.charAt(0).toUpperCase() + d.slice(1)}</mwc-list-item>`)}
               </ha-select>
+              <ha-textfield label="Name" .value="${card.name || ''}" .configValue="cards.${cardIndex}.name" @input="${this._valueChanged}"></ha-textfield>
               <ha-textfield label="Included Entities (comma-separated)" .value="${(card.include || []).join(', ')}" .configValue="cards.${cardIndex}.include" @input="${this._valueChanged}" placeholder="e.g. sensor.living_room_temperature"></ha-textfield>
               <ha-textfield label="Excluded Entities (comma-separated)" .value="${(card.exclude || []).join(', ')}" .configValue="cards.${cardIndex}.exclude" @input="${this._valueChanged}" placeholder="e.g. sensor.outside_temperature"></ha-textfield>
               <div class="styles-container">
