@@ -143,6 +143,11 @@ template_conditions:
 
 ## 🎨 Configuration Examples
 ### Example 1: Example form my own Dashboard. This is the start point of this project.
+![image1](images/1.png)
+![image2](images/2.png)
+![image3](images/3.png)
+![image4](images/4.png)
+![image5](images/5.png)
 
 ```yaml
 type: custom:summary-card # Specifies the card type.
