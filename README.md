@@ -330,10 +330,11 @@ cards:
         color: green
       # Style for when any sprinkler is on.
       - condition: any_active
+      # Displays the name of the active sprinkler.
         text: >-
           {% set zone_switches = expand('switch.zone_1', 'switch.zone_2', 'switch.zone_3', 'switch.zone_4', 'switch.zone_5', 'switch.zone_6', 'switch.zone_7', 'switch.zone_8', 'switch.zone_9', 'switch.zone_10', 'switch.zone_11') %}
           {% set on_switch = zone_switches | selectattr('state', 'eq', 'on') | first %}
-          {{on_switch.name}} is On # Displays the name of the active sprinkler zone.
+          {{on_switch.name}} is On
         secondary_text: Watering
         icon: mdi:sprinkler-variant
         color: blue
