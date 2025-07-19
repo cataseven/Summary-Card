@@ -714,7 +714,7 @@ class SummaryCardEditor extends LitElement {
           <h3>Cards</h3>
           ${(this._config.cards || []).map((card, cardIndex) => this._renderCard(card, cardIndex))}
           <div class="buttons">
-            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'domain')}" outlined><ha-icon icon="mdi:plus"></ha-icon> Add Domain</mwc-button>
+            <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'domain')}" outlined><ha-icon icon="mdi:plus"></ha-icon> Add Domain Card</mwc-button>
             <mwc-button @click="${() => this._addOrDelete('add', ['cards'], 'clock')}" outlined><ha-icon icon="mdi:clock-plus-outline"></ha-icon> Add Clock</mwc-button>
           </div>
         </div>
