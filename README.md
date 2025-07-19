@@ -1,5 +1,6 @@
 # Summary Card for Home Assistant
 ---
+![image11](images/top.png)
 
 Transform your Home Assistant dashboard into a responsive, intelligent, and beautiful control center. **Summary Card** lets you create compact, domain-based visual summaries with dynamic styling, real-time templating, and smart defaults.
 
