@@ -101,7 +101,7 @@ Each style block is evaluated top to bottom. The first matching rule is applied.
 
 | Option              | Type     | Required | Description |
 | -------------------| -------- | -------- | ----------- |
-| `condition`         | string   | ✅       | One of the predefined domain-aware keywords like `if_any_on`, `if_all_off`, `any_unavailable`, etc. |
+| `condition`         | string   | ✅       | One of the predefined domain-aware keywords like `if_any_on`, `if_all_off`, `any_unavailable`, for all entities of the selected domain etc. |
 | `text`              | string   | ❌       | Main line (can include Jinja placeholders) |
 | `secondary_text`    | string   | ❌       | Subtext (also supports Jinja)              |
 | `icon`              | string   | ❌       | Material Design Icon (`mdi:`)              |
