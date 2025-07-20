@@ -689,6 +689,6 @@ cards:
 
 ## 📄 License
 
-MIT © [Your Name or Org]
+MIT © [cataseven]
 
 ---
