@@ -4,7 +4,7 @@ import {
   css,
 } from "https://unpkg.com/lit-element@2.0.1/lit-element.js?module";
 
-// Sabitler (DOMAIN_CONDITIONS ve DOMAIN_STATE_MAP) olduğu gibi kalır
+// Constants (DOMAIN_CONDITIONS and DOMAIN_STATE_MAP) remain as they are.
 const DOMAIN_CONDITIONS = {
   light: {
     if_any_on: { label: 'If Any On', logic: 'any_active' },
@@ -271,7 +271,7 @@ class SummaryCard extends LitElement {
   }
 
   _performAction(actionConfig, cardConfig) {
-    actionConfig = actionConfig || { action: 'more-info' }; // Varsayılan eylem
+    actionConfig = actionConfig || { action: 'more-info' }; // Default action
 
     switch (actionConfig.action) {
       case 'more-info':
@@ -308,7 +308,7 @@ class SummaryCard extends LitElement {
               console.error('Invalid service_data JSON:', actionConfig.service_data);
             }
           }
-          // entity_id'yi virgül ile ayrılmışsa diziye çevir
+          // Convert comma-separated entity_id to an array
           if (actionConfig.target && actionConfig.target.entity_id) {
             let ids = actionConfig.target.entity_id;
             if (typeof ids === 'string') {
@@ -339,9 +339,9 @@ class SummaryCard extends LitElement {
   }
 
   render() {
-    if (!this.hass || !this.config) return html ``;
+    if (!this.hass || !this.config) return html``;
 
-    return html `
+    return html`
       <div class="grid-container" style="--grid-columns: ${this.config.columns || 6}; --card-height: ${this.config.row_height || '55px'};">
         ${this.config.cards.map((cardConfig, index) => this._renderCard(cardConfig, index))}
       </div>
@@ -421,7 +421,6 @@ class SummaryCard extends LitElement {
     return [];
   }
 
-  // REVİZE EDİLMİŞ METOD: hass.callApi ile şablon değerlendirme
   async _evaluateTemplate(template, variables = {}) {
     if (!this.hass) {
       console.warn("Hass object not available for template evaluation.");
@@ -432,10 +431,9 @@ class SummaryCard extends LitElement {
         template: template,
         variables: variables
       });
-      return response; // callApi otomatik olarak JSON parse eder veya metin döndürür
+      return response;
     } catch (e) {
       console.error("Backend template evaluation API error:", e);
-      // Hata durumunda, kullanıcının göreceği bir placeholder döndür
       return `Template Error: ${template}`;
     }
   }
@@ -501,7 +499,7 @@ class SummaryCard extends LitElement {
 
         for (const tpl of templateConditions) {
           const result = await this._evaluateTemplate(tpl);
-          if (String(result).trim().toLowerCase() !== 'true') { // Şablon sonucu 'true' stringine eşit mi kontrol et
+          if (String(result).trim().toLowerCase() !== 'true') {
             allTemplatesValid = false;
             break;
           }
@@ -596,7 +594,6 @@ class SummaryCard extends LitElement {
 customElements.define("summary-card", SummaryCard);
 
 class SummaryCardEditor extends LitElement {
-  // ... (properties, setConfig, willUpdate, _valueChanged, _toggleCardEditor, _addOrDelete, _addTemplateCondition metodları değişmedi)
   _didInitialFilter = false;
 
   static get properties() {
@@ -661,13 +658,20 @@ class SummaryCardEditor extends LitElement {
 
     const lastKey = path[path.length - 1];
 
-    if (lastKey === 'include' || lastKey === 'exclude') {
-      const entities = value.split(',').map(e => e.trim()).filter(e => e);
-      if (entities.length > 0) {
-        current[lastKey] = entities;
-      } else {
-        delete current[lastKey];
-      }
+    // Handle entity lists, ensuring they are always stored as arrays.
+    if ((lastKey === 'include' || lastKey === 'exclude') || (lastKey === 'entity_id' && path.includes('target'))) {
+        let entities = [];
+        if (typeof value === 'string') {
+            entities = value.split(',').map(e => e.trim()).filter(e => e);
+        } else if (Array.isArray(value)) {
+            entities = value;
+        }
+        
+        if (entities.length > 0) {
+            current[lastKey] = entities;
+        } else {
+            delete current[lastKey];
+        }
     } else if (path[path.length - 2] === 'template_conditions' && lastKey === String(parseInt(lastKey, 10))) {
       const index = parseInt(lastKey, 10);
       if (value === "") {
@@ -755,9 +759,9 @@ class SummaryCardEditor extends LitElement {
   }
 
   render() {
-    if (!this.hass || !this._config) return html ``;
+    if (!this.hass || !this._config) return html``;
 
-    return html `
+    return html`
       <div class="card-config">
         <h3>General Settings</h3>
         <ha-textfield label="Cards per Row" .value="${this._config.columns || ''}" .configValue=${"columns"} @input="${this._valueChanged}" type="text" placeholder="Default: 6"></ha-textfield>
@@ -779,7 +783,7 @@ class SummaryCardEditor extends LitElement {
     const isOpen = this._cardEditorStates[cardIndex];
     const isClockCard = card.domain === 'clock';
 
-    return html `
+    return html`
       <div class="card-editor">
         <div class="toolbar" @click="${this._toggleCardEditor}" .cardIndex="${cardIndex}">
           <h4 class="card-title">Card ${cardIndex + 1}: ${card.name || (isClockCard ? 'Clock' : (card.domain || 'New Card'))}</h4>
@@ -816,7 +820,6 @@ class SummaryCardEditor extends LitElement {
     `;
   }
 
-  // YENİ: Eylem düzenleyiciyi (Action Editor) oluşturan fonksiyon
   _renderActionEditor(card, cardIndex, actionKey, label) {
     const actionConfig = card[actionKey] || {};
     const action = actionConfig.action || 'more-info';
@@ -862,60 +865,70 @@ class SummaryCardEditor extends LitElement {
         ` : ''}
 
         ${action === 'call-service' ? html`
-          ${window.customElements.get('ha-service-picker') ? html`
-            <ha-service-picker
-              .hass=${this.hass}
-              .value=${actionConfig.service || ''}
-              .configValue=${`cards.${cardIndex}.${actionKey}.service`}
-              @value-changed=${this._valueChanged}>
-            </ha-service-picker>
-          ` : html`
-            ${this.hass && this.hass.services ? (() => {
-              const allServices = [];
-              Object.entries(this.hass.services).forEach(([domain, services]) => {
-                Object.keys(services).forEach(service => {
-                  allServices.push(`${domain}.${service}`);
+          ${(() => {
+            return window.customElements.get('ha-service-picker') ? html`
+              <ha-service-picker
+                .hass=${this.hass}
+                .value=${actionConfig.service || ''}
+                .configValue=${`cards.${cardIndex}.${actionKey}.service`}
+                @value-changed=${this._valueChanged}>
+              </ha-service-picker>
+            ` : html`
+              ${this.hass && this.hass.services ? (() => {
+                const allServices = [];
+                Object.entries(this.hass.services).forEach(([domain, services]) => {
+                  Object.keys(services).forEach(service => {
+                    allServices.push(`${domain}.${service}`);
+                  });
                 });
-              });
-              return html`
-                <ha-select
-                  label="Service"
-                  .value=${actionConfig.service || ''}
-                  .configValue=${`cards.${cardIndex}.${actionKey}.service`}
-                  @selected=${this._valueChanged}
-                  @closed=${(e) => e.stopPropagation()}
-                >
-                  ${allServices.map(srv => html`<mwc-list-item .value=${srv}>${srv}</mwc-list-item>`)}
-                </ha-select>
-              `;
-            })() : html`
-              <ha-textfield
-                  label="Service (e.g. light.turn_on)"
-                  .value=${actionConfig.service || ''}
-                  .configValue=${`cards.${cardIndex}.${actionKey}.service`}
-                  @input=${this._valueChanged}
-              ></ha-textfield>
-            `}
-          `}
-          ${window.customElements.get('ha-entity-picker') ? html`
-            <ha-entity-picker
-              .hass=${this.hass}
-              .value=${(actionConfig.target && actionConfig.target.entity_id) || ''}
-              .configValue=${`cards.${cardIndex}.${actionKey}.target.entity_id`}
-              @value-changed=${this._valueChanged}
-              allow-custom-entity
-              multiple
-            >
-            </ha-entity-picker>
-          ` : html`
-            <ha-textfield
-                label="Entity ID (comma separated for multiple)"
-                .value=${(actionConfig.target && actionConfig.target.entity_id) || ''}
+                return html`
+                  <ha-select
+                    label="Service"
+                    .value=${actionConfig.service || ''}
+                    .configValue=${`cards.${cardIndex}.${actionKey}.service`}
+                    @selected=${this._valueChanged}
+                    @closed=${(e) => e.stopPropagation()}
+                  >
+                    ${allServices.map(srv => html`<mwc-list-item .value=${srv}>${srv}</mwc-list-item>`)}
+                  </ha-select>
+                `;
+              })() : html`
+                <ha-textfield
+                    label="Service (e.g. light.turn_on)"
+                    .value=${actionConfig.service || ''}
+                    .configValue=${`cards.${cardIndex}.${actionKey}.service`}
+                    @input=${this._valueChanged}
+                ></ha-textfield>
+              `}
+            `;
+          })()}
+          ${(() => {
+            // Extract the domain from the selected service to filter the entity picker.
+            let selectedDomain = '';
+            if (actionConfig.service && typeof actionConfig.service === 'string') {
+              selectedDomain = actionConfig.service.split('.')[0];
+            }
+            
+            // Use ha-entities-picker for a better UI that supports multiple entity selection.
+            return window.customElements.get('ha-entities-picker') ? html`
+              <ha-entities-picker
+                .hass=${this.hass}
+                .value=${(actionConfig.target && actionConfig.target.entity_id) || []}
                 .configValue=${`cards.${cardIndex}.${actionKey}.target.entity_id`}
-                @input=${this._valueChanged}
-                placeholder="light.backyard, light.on_bahce, light.pool_light"
-            ></ha-textfield>
-          `}
+                @value-changed=${this._valueChanged}
+                .includeDomains=${selectedDomain ? [selectedDomain] : undefined}
+              >
+              </ha-entities-picker>
+            ` : html`
+              <ha-textfield
+                  label="Entity ID (comma separated for multiple)"
+                  .value=${((actionConfig.target && Array.isArray(actionConfig.target.entity_id)) ? actionConfig.target.entity_id.join(', ') : actionConfig.target.entity_id) || ''}
+                  .configValue=${`cards.${cardIndex}.${actionKey}.target.entity_id`}
+                  @input=${this._valueChanged}
+                  placeholder=${selectedDomain ? `${selectedDomain}.entity1, ${selectedDomain}.entity2` : "e.g. light.living_room"}
+              ></ha-textfield>
+            `;
+          })()}
           <ha-textfield
               label="Service Data (JSON, optional)"
               .value=${actionConfig.service_data || ''}
@@ -974,7 +987,6 @@ class SummaryCardEditor extends LitElement {
     `;
   }
 
-  // YENİ: Editör için eklenen yeni CSS stilleri
   static get styles() {
     return css`
       h3, h5, h4, h6 { margin: 0; font-weight: 500; color: var(--primary-text-color); }
@@ -994,7 +1006,7 @@ class SummaryCardEditor extends LitElement {
       .actions { display: flex; align-items: center; color: var(--secondary-text-color); }
       .delete-btn { cursor: pointer; margin-left: 8px; color: var(--secondary-text-color); }
       .delete-btn:hover { color: var(--error-color, #f44336); }
-      ha-textfield, ha-select, ha-icon-picker {
+      ha-textfield, ha-select, ha-icon-picker, ha-service-picker, ha-entities-picker {
         display: block;
         margin-bottom: 8px;
         --mdc-text-field-ink-color: var(--primary-text-color);
