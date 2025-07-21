@@ -64,6 +64,8 @@ ADD DOMAIN CARD -> SELECT DOMAIN -> ADD SCENARIO -> SET OUTPUTS<br>
 Also you can OPTIONALLY: include only spesific entities of the domain<br>
 Also you can OPTIONALLY: exclude spesific entities from the domain<br>
 
+Card try to create card for all available domains. You can modify auto-prepared card!
+
 <br>
 <br>
 
