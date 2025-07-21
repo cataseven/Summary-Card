@@ -158,8 +158,31 @@ template_conditions:
 
 ---
 
+### Tap Actions
+![image15](images/tap.png)
 
-
+### Call Service Schema
+```yaml
+type: custom:summary-card
+columns: 6
+row_height: 60px
+cards:
+  - domain: switch
+    name: Kitchen Wall Socket
+    include:
+      - switch.kitchen
+    styles:
+      - condition: any_unavailable
+        text: Kitchen Wall Socket is Unavailable
+        secondary_text: Check Device
+        icon: mdi:lightning-bolt
+        color: red
+    tap_action:
+      action: call-service
+      service: light.toggle
+      target:
+        entity_id: light.backyard,light.on_bahce,light.pool_light
+```
 
 ## 🎨 Configuration Examples
 ### Example 1: Example form my own Dashboard. This is the start point of this project.
