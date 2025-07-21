@@ -161,6 +161,10 @@ template_conditions:
 
 ---
 
+### Include / Exclude Entities
+Via Include Enitites option, you can easily create card for only one entity of the selected domain (or two, or three.. depens on your need)
+Via Exlude Enitites option, you can easily exclude one entitiy (or two, or three.. depens on your needs) from your selected domain and create card for the rest of the domain
+
 ### Tap Actions
 ![image15](images/tap.png)
 
