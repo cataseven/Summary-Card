@@ -18,7 +18,8 @@ This is not just another Lovelace card. It's a highly customizable system for bu
 - **Auto-Fill on First Use:** Automatically fills in cards based on detected domains on first load.
 - **Fully Visual Editor:** No YAML required. Add/edit cards, conditions, and templates via a clean UI.
 - **Jinja in Text:** Use template placeholders like `{{ active_count }}` or even backend-evaluated Jinja strings inside `text` and `secondary_text`.
-
+- **Tap Actions:** More Info, Navigate, URL, Perform Action, Nothing...
+  
 ---
 
 ## 🛠 Installation
