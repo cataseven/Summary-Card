@@ -191,6 +191,12 @@ cards:
         entity_id: light.backyard,light.on_bahce,light.pool_light
 ```
 
+## 🎨 Tap Action - More Info Screenshots
+![image2](images/media.png)
+
+![image1](images/cover.png)
+
+
 ## 🎨 Configuration Examples
 ### Example 1: Example form my own Dashboard. This is the start point of this project.
 ![image1](images/1.png)
