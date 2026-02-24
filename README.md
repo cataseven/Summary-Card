@@ -16,12 +16,12 @@ This is not just another Lovelace card. It's a highly customizable system for bu
 ## ✨ Features
 
 - **Responsive Grid Layout:** Define the number of columns and height per row.
-- **Domain-Aware Conditions:** Each domain (light, climate, etc.) has intelligent predefined conditions like "If Any On", "If All Idle", etc.
+- **Domain-Aware Conditions:** Each domain has intelligent predefined conditions like `if_any_on`, `if_all_idle`, `if_any_heating`, etc.
 - **Template-Backed Conditions:** Use full Jinja templates for advanced logic in combination with default logic.
 - **Clock Support:** Add a live-updating card showing the current time and date.
 - **Auto-Fill on First Use:** Automatically fills in cards based on detected domains on first load.
 - **Fully Visual Editor:** No YAML required. Add/edit cards, conditions, and templates via a clean UI.
-- **Jinja in Text:** Use template placeholders like `{{ active_count }}` or even backend-evaluated Jinja strings inside `text` and `secondary_text`.
+- **Jinja in Text:** Use domain-specific count placeholders like `{{ on_count }}`, `{{ heating_count }}` or full backend-evaluated Jinja strings inside `text` and `secondary_text`.
 - **Tap Actions:** More Info, Navigate, URL, Perform Action, Nothing...
   
 ---
@@ -109,24 +109,36 @@ Each style block is evaluated top to bottom. The first matching rule is applied.
 
 | Option              | Type     | Required | Description |
 | -------------------| -------- | -------- | ----------- |
-| `condition`         | string   | ✅       | One of the predefined domain-aware keywords like `if_any_on`, `if_all_off`, `any_unavailable`, for all entities of the selected domain etc. |
+| `condition`         | string   | ✅       | One of the predefined domain-aware keywords like `if_any_on`, `if_all_closed`, `any_unavailable`, etc. |
 | `text`              | string   | ❌       | Main line (can include Jinja placeholders) |
 | `secondary_text`    | string   | ❌       | Subtext (also supports Jinja)              |
 | `icon`              | string   | ❌       | Material Design Icon (`mdi:`)              |
 | `color`             | string   | ❌       | CSS color or theme variable                |
-| `value`             | number/string | ❌   | Required only for sensor domain rules like `equal`, `above`, `below`, etc. |
+| `value`             | number/string | ❌   | Required only for sensor domain rules like `if_any_equal`, `if_any_above`, `if_any_below`, etc. |
 | `template_conditions` | array | ❌       | List of Jinja template strings that must evaluate to `true` |
 
 ---
 
-### Domain Conditions Overview
+### Domain Conditions
 
-| Domain         | Available Conditions |
-|----------------|----------------------|
-| `light`, `switch` | `if_any_on`, `if_all_off`, `any_unavailable`, ... |
-| `binary_sensor` | `if_any_true`, `if_all_false`, ... |
-| `sensor` | `if_any_above`, `if_any_below`, `equal`, `not_equal`, `any_unavailable` |
-| `camera`, `media_player`, `vacuum`, etc. | Tailored domain logic like `if_any_streaming`, `if_all_idle`, etc. |
+Each domain exposes a tailored set of conditions. All domains also include `any_unavailable`.
+
+| Domain | Available Conditions |
+|---|---|
+| `light`, `switch` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
+| `binary_sensor` | `if_any_true`, `if_all_true`, `if_any_false`, `if_all_false` |
+| `cover` | `if_any_open`, `if_all_open`, `if_any_closed`, `if_all_closed`, `if_any_opening`, `if_all_opening`, `if_any_closing`, `if_all_closing`, `if_any_stopped`, `if_all_stopped` |
+| `media_player` | `if_any_playing`, `if_all_playing`, `if_any_idle`, `if_all_idle`, `if_any_paused`, `if_all_paused`, `if_any_buffering`, `if_all_buffering`, `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
+| `person` | `if_any_at_home`, `if_all_at_home`, `if_any_away`, `if_all_away` |
+| `alarm_control_panel` | `if_any_armed`, `if_all_armed`, `if_any_disarmed`, `if_all_disarmed`, `if_any_triggered`, `if_all_triggered`, `if_any_arming`, `if_all_arming`, `if_any_pending`, `if_all_pending` |
+| `lock` | `if_any_unlocked`, `if_all_unlocked`, `if_any_locked`, `if_all_locked`, `if_any_locking`, `if_all_locking`, `if_any_unlocking`, `if_all_unlocking`, `if_any_jammed`, `if_all_jammed` |
+| `vacuum` | `if_any_cleaning`, `if_all_cleaning`, `if_any_docked`, `if_all_docked`, `if_any_returning`, `if_all_returning`, `if_any_paused`, `if_all_paused`, `if_any_idle`, `if_all_idle`, `if_any_error`, `if_all_error` |
+| `camera` | `if_any_streaming`, `if_all_streaming`, `if_any_idle`, `if_all_idle`, `if_any_recording`, `if_all_recording` |
+| `climate` (HVAC mode) | `if_any_heat`, `if_all_heat`, `if_any_cool`, `if_all_cool`, `if_any_heat_cool`, `if_all_heat_cool`, `if_any_auto`, `if_all_auto`, `if_any_dry`, `if_all_dry`, `if_any_fan_only`, `if_all_fan_only`, `if_any_off`, `if_all_off` |
+| `climate` (hvac_action) | `if_any_heating`, `if_all_heating`, `if_any_cooling`, `if_all_cooling`, `if_any_idle`, `if_all_idle`, `if_any_fan`, `if_all_fan`, `if_any_drying`, `if_all_drying`, `if_any_preheating`, `if_all_preheating`, `if_any_defrosting`, `if_all_defrosting` |
+| `sensor` | `if_any_above`, `if_any_below`, `if_any_equal`, `if_any_not_equal`, `any_unavailable` |
+
+> **Climate note:** HVAC mode conditions (e.g. `if_any_heat`) reflect what mode the thermostat is *set to*. hvac_action conditions (e.g. `if_any_heating`) reflect what the device is *physically doing right now* — a thermostat set to `heat` may have `hvac_action: idle` if the target temperature is already reached.
 
 For example:
 
@@ -138,7 +150,7 @@ For example:
   styles:
     - condition: if_any_above
       value: 28
-      text: "Hot! ({{ active_count }} over 28°C)"
+      text: "Hot! ({{ unavailable_count }} unavailable)"
       icon: mdi:thermometer
       color: red
 ```
@@ -147,11 +159,22 @@ For example:
 
 ### Dynamic Template Variables
 
-The following are available in any `text` or `secondary_text` string:
+The following count variables are available in `text` and `secondary_text`. All domains also provide `{{ total_count }}` and `{{ unavailable_count }}`.
 
-- `{{ active_count }}` - Returns the number of on/true/active entities of the domain. For example {{ active_count }} people at home = 3 People At Home 
-- `{{ inactive_count }}`- Returns the number of off/false/passive entities of the domain. For example {{ inactive_count }} lights are off = 4 lights are off 
-- `{{ unavailable_count }}`- Returns the number of unavailabel entities of the domain. For example {{ inactive_count }} cameras are diconnected = 2 cameras are disconnected
+| Domain | Available count variables |
+|---|---|
+| `light` | `{{ on_count }}` `{{ off_count }}` |
+| `switch` | `{{ on_count }}` `{{ off_count }}` |
+| `binary_sensor` | `{{ true_count }}` `{{ false_count }}` |
+| `cover` | `{{ open_count }}` `{{ closed_count }}` `{{ opening_count }}` `{{ closing_count }}` `{{ stopped_count }}` |
+| `media_player` | `{{ playing_count }}` `{{ idle_count }}` `{{ paused_count }}` `{{ buffering_count }}` `{{ on_count }}` `{{ off_count }}` |
+| `person` | `{{ at_home_count }}` `{{ away_count }}` |
+| `alarm_control_panel` | `{{ armed_count }}` `{{ disarmed_count }}` `{{ triggered_count }}` `{{ arming_count }}` `{{ pending_count }}` |
+| `lock` | `{{ unlocked_count }}` `{{ locked_count }}` `{{ locking_count }}` `{{ unlocking_count }}` `{{ jammed_count }}` |
+| `vacuum` | `{{ cleaning_count }}` `{{ docked_count }}` `{{ returning_count }}` `{{ paused_count }}` `{{ idle_count }}` `{{ error_count }}` |
+| `camera` | `{{ streaming_count }}` `{{ idle_count }}` `{{ recording_count }}` |
+| `climate` (HVAC mode) | `{{ heat_count }}` `{{ cool_count }}` `{{ heat_cool_count }}` `{{ auto_count }}` `{{ dry_count }}` `{{ fan_only_count }}` `{{ off_count }}` |
+| `climate` (hvac_action) | `{{ heating_count }}` `{{ cooling_count }}` `{{ idle_count }}` `{{ fan_count }}` `{{ drying_count }}` `{{ preheating_count }}` `{{ defrosting_count }}` |
 
 You can also use full Jinja expressions, including custom Home Assistant state queries inside `template_conditions`.
 
@@ -226,7 +249,7 @@ cards:
         icon: mdi:lightning-bolt # The icon to show.
         color: red # The color of the icon.
       # Style for when the socket is off and drawing no power.
-      - condition: all_inactive # If all of the included entities are off.
+      - condition: if_all_off # If all of the included entities are off.
         text: Kitchen Wall Socket is Off
         secondary_text: Secure
         icon: mdi:lightning-bolt
@@ -235,7 +258,7 @@ cards:
           # This template checks if the 'current' attribute of the switch is 0.
           - "{{ is_state_attr('switch.kitchen', 'current', 0) }}"
       # Style for when the socket is on and drawing power.
-      - condition: any_active # If any of the included entities are on.
+      - condition: if_any_on # If any of the included entities are on.
         text: Kitchen Wall Socket is On
         secondary_text: >- # The '>' allows for multi-line strings.
           Warning! Check the Device! Current value is
@@ -257,7 +280,7 @@ cards:
         icon: mdi:water-percent-alert
         color: red
       # Style for when the water level is at 0.
-      - condition: equal # Condition based on the sensor's value.
+      - condition: if_any_equal # Condition based on the sensor's value.
         value: 0 # The value to compare against.
         text: Water Level is 0
         secondary_text: Secure
@@ -265,7 +288,7 @@ cards:
         color: green
         template_conditions: [] # No extra template conditions needed here.
       # Style for when the water level is not 0.
-      - condition: not_equal
+      - condition: if_any_not_equal
         value: "0" # The value to compare against (as a string).
         text: >-
           Water Level is {{state_attr('sensor.current_water_level', 'raw_state')}}
@@ -279,7 +302,7 @@ cards:
     name: Shutters & Garage
     styles:
       # Style for when the garage door is open.
-      - condition: any_active
+      - condition: if_any_open
         text: Garage Door is Open
         secondary_text: Warning!
         icon: mdi:garage-alert-variant
@@ -288,7 +311,7 @@ cards:
           # Checks if the garage door binary sensor is 'on'.
           - "{{ is_state('binary_sensor.garage_door', 'on') }}"
       # Style for when all shutters are closed and available.
-      - condition: all_inactive
+      - condition: if_all_closed
         text: All Shutters are Closed
         secondary_text: Secure
         icon: mdi:window-shutter
@@ -300,7 +323,7 @@ cards:
             {% set open_shutters = states.cover | selectattr('state', 'ne', 'unavailable') | selectattr('attributes.current_position', 'ge', 1) | map(attribute='entity_id') | list %}
             {{ open_shutters | length == 0 and un_shutters | length == 0 }}
       # Style for when any shutter is open during the night.
-      - condition: any_active
+      - condition: if_any_open
         text: Shutters Open (Night)
         secondary_text: Check Security
         icon: mdi:window-shutter-open
@@ -309,7 +332,7 @@ cards:
           # Checks if the current time is between midnight and 5 AM.
           - "{{ now().hour >= 0 and now().hour < 5 }}"
       # Style for when any shutter is open and the family is away.
-      - condition: any_active
+      - condition: if_any_open
         text: Shutters Open (Away)
         secondary_text: Check Security
         icon: mdi:window-shutter-open
@@ -333,7 +356,7 @@ cards:
         template_conditions:
           - "{{ is_state('group.family', 'home') }}"
       # Style for when any shutter is open during the day and the family is home.
-      - condition: any_active
+      - condition: if_any_open
         text: Shutters Open (Daytime)
         secondary_text: Enjoy the View!
         icon: mdi:window-shutter-open
@@ -364,13 +387,13 @@ cards:
         icon: mdi:wifi-off
         color: red
       # Style for when all sprinklers are off.
-      - condition: all_inactive
+      - condition: if_all_off
         text: Sprinklers are Off
         secondary_text: Secure
         icon: mdi:sprinkler
         color: green
       # Style for when any sprinkler is on.
-      - condition: any_active
+      - condition: if_any_on
       # Displays the name of the active sprinkler.
         text: >-
           {% set zone_switches = expand('switch.zone_1', 'switch.zone_2', 'switch.zone_3', 'switch.zone_4', 'switch.zone_5', 'switch.zone_6', 'switch.zone_7', 'switch.zone_8', 'switch.zone_9', 'switch.zone_10', 'switch.zone_11') %}
@@ -388,8 +411,8 @@ cards:
         secondary_text: Check Cameras
         icon: mdi:video-box-off
         color: red
-      # Style for when all cameras are online.
-      - condition: all_active
+      # Style for when all cameras are streaming.
+      - condition: if_all_streaming
         text: Cameras are Online
         secondary_text: Secure
         icon: mdi:video-check
@@ -438,9 +461,8 @@ cards:
     styles:
       # Scenario 1: Is at least one light currently on?
       - condition: if_any_on
-        # The 'text' field supports templates. '{{ active_count }}' is a built-in variable
-        # that shows the number of entities in an "active" state (e.g., 'on').
-        text: '{{ active_count }} On'
+        # '{{ on_count }}' shows the number of lights that are currently on.
+        text: '{{ on_count }} On'
         icon: mdi:lightbulb-on
         color: 'rgb(255, 193, 7)' # Amber color for the icon
 
@@ -467,7 +489,7 @@ cards:
 
       # Scenario 2: If none are unavailable, is at least one switch on?
       - condition: if_any_on
-        text: '{{ active_count }} Active'
+        text: '{{ on_count }} Active'
         icon: mdi:power-plug
         color: 'dodgerblue'
 
@@ -500,13 +522,13 @@ cards:
       # Rule 1: If at least one person is home...
       # For the 'person' domain, the 'home' state is considered "active".
       - condition: if_any_at_home
-        # The '{{ active_count }}' variable shows the number of entities in an active state.
-        text: '{{ active_count }} at Home'
+        # '{{ at_home_count }}' shows the number of people currently at home.
+        text: '{{ at_home_count }} at Home'
         icon: mdi:home-account
         color: '#4CAF50' # Green
 
       # Rule 2: If everyone is away...
-      - condition: if_everyone_away
+      - condition: if_all_away
         text: Everyone Away
         icon: mdi:home-export-outline
         color: '#FF9800' # Orange
@@ -524,7 +546,7 @@ cards:
       # Rule 1: If any door or window is open...
       # For 'binary_sensor', the 'on' (true) state is considered "active".
       - condition: if_any_true
-        text: '{{ active_count }} Open!'
+        text: '{{ true_count }} Open!'
         secondary_text: Unsecured
         icon: mdi:shield-alert
         color: 'crimson'
@@ -544,14 +566,19 @@ cards:
     exclude:
       - media_player.guest_room_display
     styles:
-      # Rule 1: If any media player is active...
-      # For 'media_player', states like 'playing' or 'on' are considered "active".
+      # Rule 1: If any media player is playing...
       - condition: if_any_playing
-        text: '{{ active_count }} Playing'
+        text: '{{ playing_count }} Playing'
         icon: mdi:cast-connected
         color: 'deepskyblue'
 
-      # Rule 2: If all media players are idle...
+      # Rule 2: If any media player is paused...
+      - condition: if_any_paused
+        text: '{{ paused_count }} Paused'
+        icon: mdi:pause-circle
+        color: 'var(--secondary-text-color)'
+
+      # Rule 3: If all media players are idle...
       - condition: if_all_idle
         text: All Idle
         icon: mdi:cast
@@ -584,8 +611,8 @@ cards:
       # For a 'binary_sensor', the 'on' (true) state is considered "active".
       # In this example, an 'on' state from the sensor means the soil is dry.
       - condition: if_any_true
-        # The '{{ active_count }}' variable shows the number of plants that need water.
-        text: '{{ active_count }} Thirsty Plant(s)'
+        # '{{ true_count }}' shows the number of plants that need water.
+        text: '{{ true_count }} Thirsty Plant(s)'
         secondary_text: Time to get the watering can!
         icon: mdi:water-alert
         color: '#E53935' # Red
