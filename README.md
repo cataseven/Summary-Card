@@ -136,7 +136,13 @@ Each domain exposes a tailored set of conditions. All domains also include `any_
 | `camera` | `if_any_streaming`, `if_all_streaming`, `if_any_idle`, `if_all_idle`, `if_any_recording`, `if_all_recording` |
 | `climate` (HVAC mode) | `if_any_heat`, `if_all_heat`, `if_any_cool`, `if_all_cool`, `if_any_heat_cool`, `if_all_heat_cool`, `if_any_auto`, `if_all_auto`, `if_any_dry`, `if_all_dry`, `if_any_fan_only`, `if_all_fan_only`, `if_any_off`, `if_all_off` |
 | `climate` (hvac_action) | `if_any_heating`, `if_all_heating`, `if_any_cooling`, `if_all_cooling`, `if_any_idle`, `if_all_idle`, `if_any_fan`, `if_all_fan`, `if_any_drying`, `if_all_drying`, `if_any_preheating`, `if_all_preheating`, `if_any_defrosting`, `if_all_defrosting` |
+| `fan` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
+| `humidifier` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
+| `plant` | `if_any_problem`, `if_all_problem`, `if_any_ok`, `if_all_ok` |
 | `sensor` | `if_any_above`, `if_any_below`, `if_any_equal`, `if_any_not_equal`, `any_unavailable` |
+| `siren` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
+| `update` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
+| `water_heater` | `if_any_active`, `if_all_active`, `if_any_off`, `if_all_off`, `if_any_eco`, `if_all_eco`, `if_any_electric`, `if_all_electric`, `if_any_performance`, `if_all_performance`, `if_any_high_demand`, `if_all_high_demand`, `if_any_heat_pump`, `if_all_heat_pump`, `if_any_gas`, `if_all_gas` |
 
 > **Climate note:** HVAC mode conditions (e.g. `if_any_heat`) reflect what mode the thermostat is *set to*. hvac_action conditions (e.g. `if_any_heating`) reflect what the device is *physically doing right now* — a thermostat set to `heat` may have `hvac_action: idle` if the target temperature is already reached.
 
@@ -175,6 +181,12 @@ The following count variables are available in `text` and `secondary_text`. All 
 | `camera` | `{{ streaming_count }}` `{{ idle_count }}` `{{ recording_count }}` |
 | `climate` (HVAC mode) | `{{ heat_count }}` `{{ cool_count }}` `{{ heat_cool_count }}` `{{ auto_count }}` `{{ dry_count }}` `{{ fan_only_count }}` `{{ off_count }}` |
 | `climate` (hvac_action) | `{{ heating_count }}` `{{ cooling_count }}` `{{ idle_count }}` `{{ fan_count }}` `{{ drying_count }}` `{{ preheating_count }}` `{{ defrosting_count }}` |
+| `fan` | `{{ on_count }}` `{{ off_count }}` |
+| `humidifier` | `{{ on_count }}` `{{ off_count }}` |
+| `plant` | `{{ problem_count }}` `{{ ok_count }}` |
+| `siren` | `{{ on_count }}` `{{ off_count }}` |
+| `update` | `{{ on_count }}` `{{ off_count }}` |
+| `water_heater` | `{{ active_count }}` `{{ off_count }}` `{{ eco_count }}` `{{ electric_count }}` `{{ performance_count }}` `{{ high_demand_count }}` `{{ heat_pump_count }}` `{{ gas_count }}` |
 
 You can also use full Jinja expressions, including custom Home Assistant state queries inside `template_conditions`.
 
