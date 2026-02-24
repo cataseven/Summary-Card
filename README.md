@@ -186,7 +186,7 @@ The following count variables are available in `text` and `secondary_text`. All 
 | `plant` | `{{ problem_count }}` `{{ ok_count }}` |
 | `siren` | `{{ on_count }}` `{{ off_count }}` |
 | `update` | `{{ on_count }}` `{{ off_count }}` |
-| `water_heater` | `{{ active_count }}` `{{ off_count }}` `{{ eco_count }}` `{{ electric_count }}` `{{ performance_count }}` `{{ high_demand_count }}` `{{ heat_pump_count }}` `{{ gas_count }}` |
+| `water_heater` | `{{ on_count }}` `{{ off_count }}` `{{ eco_count }}` `{{ electric_count }}` `{{ performance_count }}` `{{ high_demand_count }}` `{{ heat_pump_count }}` `{{ gas_count }}` |
 
 You can also use full Jinja expressions, including custom Home Assistant state queries inside `template_conditions`.
 
