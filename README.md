@@ -142,7 +142,7 @@ Each domain exposes a tailored set of conditions. All domains also include `any_
 | `sensor` | `if_any_above`, `if_any_below`, `if_any_equal`, `if_any_not_equal`, `any_unavailable` |
 | `siren` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
 | `update` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
-| `water_heater` | `if_any_active`, `if_all_active`, `if_any_off`, `if_all_off`, `if_any_eco`, `if_all_eco`, `if_any_electric`, `if_all_electric`, `if_any_performance`, `if_all_performance`, `if_any_high_demand`, `if_all_high_demand`, `if_any_heat_pump`, `if_all_heat_pump`, `if_any_gas`, `if_all_gas` |
+| `water_heater` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off`, `if_any_eco`, `if_all_eco`, `if_any_electric`, `if_all_electric`, `if_any_performance`, `if_all_performance`, `if_any_high_demand`, `if_all_high_demand`, `if_any_heat_pump`, `if_all_heat_pump`, `if_any_gas`, `if_all_gas` |
 
 > **Climate note:** HVAC mode conditions (e.g. `if_any_heat`) reflect what mode the thermostat is *set to*. hvac_action conditions (e.g. `if_any_heating`) reflect what the device is *physically doing right now* — a thermostat set to `heat` may have `hvac_action: idle` if the target temperature is already reached.
 
