@@ -232,7 +232,7 @@ tap_action:
   perform_action: script.restart
 ```
 
-#### Vacuum: Input Select in Popup
+## Vacuum: Input Select in Popup
 
 For vacuum domain cards, when tap or hold action is set to **More Info**, you can optionally display `input_select` entities inside the popup (e.g., for map selection):
 
