@@ -153,6 +153,7 @@ Each domain exposes a tailored set of conditions. All domains also include `any_
 | `siren` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
 | `update` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
 | `water_heater` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off`, `if_any_eco`, `if_all_eco`, `if_any_electric`, `if_all_electric`, `if_any_performance`, `if_all_performance`, `if_any_high_demand`, `if_all_high_demand`, `if_any_heat_pump`, `if_all_heat_pump`, `if_any_gas`, `if_all_gas` |
+| `zone` | `if_any_occupied`, `if_all_empty`, `if_any_above`, `if_any_below`, `if_any_equal`, `if_any_not_equal`, `any_unavailable` |
 
 > **Climate note:** HVAC mode conditions (e.g. `if_any_heat`) reflect what mode the thermostat is *set to*. hvac_action conditions (e.g. `if_any_heating`) reflect what the device is *physically doing right now* — a thermostat set to `heat` may have `hvac_action: idle` if the target temperature is already reached.
 
@@ -198,6 +199,7 @@ The following count variables are available in `text` and `secondary_text`. All 
 | `siren` | `{{ on_count }}` `{{ off_count }}` |
 | `update` | `{{ on_count }}` `{{ off_count }}` |
 | `water_heater` | `{{ on_count }}` `{{ off_count }}` `{{ eco_count }}` `{{ electric_count }}` `{{ performance_count }}` `{{ high_demand_count }}` `{{ heat_pump_count }}` `{{ gas_count }}` |
+| `zone` | `{{ occupied_count }}` `{{ empty_count }}` `{{ total_persons }}` `{{ total_persons_list }}` |
 
 You can also use full Jinja expressions, including custom Home Assistant state queries inside `template_conditions`.
 
