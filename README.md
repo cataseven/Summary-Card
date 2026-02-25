@@ -11,6 +11,8 @@ Transform your Home Assistant dashboard into a responsive, intelligent, and beau
 This is not just another Lovelace card. It's a highly customizable system for building status dashboards that feel alive.
 
 ![image8](images/sample.png)
+
+![image9](images/summary.gif)
 ---
 
 ## ✨ Features
