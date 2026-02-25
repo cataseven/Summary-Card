@@ -791,304 +791,321 @@ cards:
 
 ![image10](images/moreinfos.png)
 ```
-  - type: custom:summary-card
-    row_height: 65px
-    cards:
-      - domain: light
-        styles:
-          - condition: any_unavailable
-            color: red
-            icon: mdi:lightbulb-alert
-          - condition: if_any_on
-            value: "0.0"
-            icon: mdi:lightbulb-on
-            template_conditions: []
-            color: "#ffa500"
-          - condition: if_all_off
-            value: "0.0"
-            icon: mdi:lightbulb-outline
-            color: "#4caf50"
-            template_conditions: []
-        tap_action:
-          action: more-info
-        include:
-          - light.veranda_back_2
-          - light.veranda_back_1
-          - light.backyard
-          - light.veranda_front
-          - light.on_bahce
-          - light.pool_light
-          - light.salon_aplik
-      - domain: cover
-        styles:
-          - condition: if_any_open
-            icon: mdi:garage-alert-variant
-            color: red
-            template_conditions:
-              - "{{ is_state('binary_sensor.garage_door', 'on') }}"
-          - condition: if_all_closed
-            icon: mdi:window-shutter
-            color: "#4caf50"
-            template_conditions: []
-          - condition: if_any_open
-            icon: mdi:window-shutter-open
-            color: red
-            template_conditions:
-              - "{{ now().hour >= 0 and now().hour < 5 }}"
-          - condition: if_any_open
-            icon: mdi:window-shutter-open
-            color: red
-            template_conditions:
-              - "{{ is_state('group.family', 'not_home') }}"
-          - condition: any_unavailable
-            icon: mdi:window-shutter-alert
-            color: red
-            template_conditions:
-              - "{{ is_state('group.family', 'not_home') }}"
-          - condition: any_unavailable
-            icon: mdi:window-shutter-alert
-            color: orange
-            template_conditions:
-              - "{{ is_state('group.family', 'home') }}"
-          - condition: if_any_open
-            icon: mdi:window-shutter-open
-            color: "#4caf50"
-            template_conditions:
-              - >-
-                {{ is_state('group.family', 'home') and ('05:00' <=
-                now().strftime('%H:%M') <= '23:59')}}
-        tap_action:
-          action: more-info
-      - domain: switch
-        include:
-          - switch.zone_1
-          - switch.zone_2
-          - switch.zone_3
-          - switch.zone_4
-          - switch.zone_5
-          - switch.zone_6
-          - switch.zone_7
-          - switch.zone_8
-          - switch.zone_9
-          - switch.zone_10
-          - switch.zone_11
-        styles:
-          - condition: any_unavailable
-            icon: mdi:wifi-off
-            color: red
-          - condition: if_all_off
-            icon: mdi:sprinkler
-            color: "#4caf50"
-          - condition: if_any_on
-            text: >-
-              {% set zone_switches = expand('switch.zone_1', 'switch.zone_2',
-              'switch.zone_3', 'switch.zone_4', 'switch.zone_5',
-              'switch.zone_6', 'switch.zone_7', 'switch.zone_8',
-              'switch.zone_9', 'switch.zone_10', 'switch.zone_11') %} {% set
-              on_switch = zone_switches | selectattr('state', 'eq', 'on') |
-              first %} {{on_switch.name}} is On
-            icon: mdi:sprinkler-variant
-            color: "#3399ff"
-        tap_action:
-          action: navigate
-          navigation_path: /lovelace-phone/garden?y=940
-        hold_action:
-          action: more-info
-      - domain: media_player
-        styles:
-          - condition: if_any_playing
-            icon: mdi:television
-            color: "#ffa500"
-          - condition: if_any_off
-            icon: mdi:television-off
-            color: "#4caf50"
-            template_conditions: []
-          - condition: if_any_paused
-            icon: mdi:television
-            color: "#ffa500"
-          - condition: if_any_idle
-            icon: mdi:television
-            color: "#ffa500"
-          - condition: if_any_on
-            icon: mdi:television
-            color: "#ffa500"
-        include:
-          - media_player.living_room
-          - media_player.toshiba
-          - media_player.spotify_cenkataseven
-      - domain: alarm_control_panel
-        styles:
-          - condition: any_unavailable
-            icon: mdi:wifi-off
-            color: "#ff0000"
-          - condition: if_any_disarmed
-            icon: mdi:security
-            color: red
-            template_conditions:
-              - "{{ is_state('group.family', 'not_home') }}"
-          - condition: if_any_disarmed
-            template_conditions:
-              - "{{ is_state('group.family', 'home') }}"
-            color: "#4caf50"
-            icon: mdi:shield-off
-          - condition: if_any_armed
-            icon: mdi:shield-lock
-            color: "#4caf50"
-            template_conditions: []
-          - condition: if_any_triggered
-            color: "#ff0000"
-            text: Triggered
-            icon: mdi:alarm-light
-        include:
-          - alarm_control_panel.alarm_home_alarm
-        tap_action:
-          action: navigate
-          navigation_path: /lovelace-phone/Alarm
-      - domain: camera
-        styles:
-          - condition: any_unavailable
-            icon: mdi:video-box-off
-            color: red
-          - condition: if_any_idle
-            icon: mdi:video-check
-            color: "#4caf50"
-        tap_action:
-          action: more-info
-          navigation_path: /lovelace-phone/garden
-        include:
-          - camera.front
-          - camera.garage
-          - camera.side
-          - camera.pool
-      - domain: vacuum
-        styles:
-          - condition: if_all_docked
-            icon: mdi:robot-vacuum
-            color: "#4caf50"
-          - condition: if_any_cleaning
-            color: "#0000ff"
-          - condition: if_any_returning
-            color: "#ffff00"
-          - condition: if_any_error
-            text: Active
-            color: "#ff0000"
-          - condition: any_unavailable
-            text: Active
-            color: "#ff0000"
-        include:
-          - vacuum.viomi_v13
-        tap_action:
-          action: more-info
-        show_input_select: true
-        input_select_entities:
-          - input_select.map
-        hold_action:
-          action: navigate
-          navigation_path: /lovelace-phone/vacuum-media
-      - domain: switch
-        styles:
-          - condition: any_unavailable
-            icon: mdi:pool
-            color: "#ff0000"
-          - condition: if_any_on
-            color: "#00d5ff"
-            icon: mdi:pool
-          - condition: if_all_off
-            color: "#4caf50"
-            icon: mdi:pool
-        include:
-          - switch.pool
-      - domain: binary_sensor
-        include:
-          - binary_sensor.garage_door
-        styles:
-          - condition: any_unavailable
-            icon: mdi:gate-alert
-            color: red
-          - condition: if_all_false
-            icon: mdi:garage-variant
-            color: "#4caf50"
-            template_conditions: []
-          - condition: if_any_true
-            icon: mdi:garage-open-variant
-            color: "#ffa500"
-        hold_action:
-          action: perform-action
-          confirmation: true
-          perform_action: switch.toggle
-          target:
-            entity_id: switch.garage_door
-          data: {}
-        tap_action:
-          action: more-info
-      - domain: person
-        styles:
-          - condition: any_unavailable
-            color: "#ff0000"
-            icon: mdi:account-alert
-          - condition: if_all_away
-            color: "#0000ff"
-            icon: mdi:home-export-outline
-          - condition: if_any_at_home
-            icon: mdi:account
-            color: "#4caf50"
-        include:
-          - person.cenk
-          - person.derya
-          - person.mine
-        tap_action:
-          action: navigate
-          navigation_path: /lovelace-phone/navigation
-      - domain: sensor
-        include:
-          - sensor.current_water_level
-        styles:
-          - condition: any_unavailable
-            icon: mdi:water-percent-alert
-            color: red
-          - condition: if_any_equal
-            value: "0.0"
-            icon: mdi:water-percent
-            color: "#4caf50"
-            template_conditions: []
-          - condition: if_any_not_equal
-            value: "0.0"
-            icon: mdi:water-percent-alert
-            color: red
-            template_conditions: []
-        hold_action:
-          action: none
-        double_tap_action:
-          action: more-info
-        tap_action:
-          action: more-info
-      - domain: input_boolean
-        styles:
-          - condition: if_all_off
-            icon: mdi:exclamation-thick
-            color: "#ff0000"
-          - condition: if_any_on
-            color: "#4caf50"
-            template_conditions:
-              - "{{ is_state('input_boolean.home', 'on') }}"
-            icon: mdi:home-circle-outline
-          - condition: if_any_on
-            text: Active
-            icon: mdi:food-turkey
-            template_conditions:
-              - "{{ is_state('input_boolean.guest', 'on') }}"
-            color: "#ffa500"
-          - condition: if_any_on
-            text: Active
-            template_conditions:
-              - "{{ is_state('input_boolean.holiday', 'on') }}"
-            color: "#00fffb"
-            icon: mdi:beach
-        include:
-          - input_boolean.home
-          - input_boolean.guest
-          - input_boolean.holiday
-    columns: "4"
+type: custom:summary-card
+row_height: 73px
+cards:
+  - domain: light
+    styles:
+      - condition: any_unavailable
+        color: red
+        icon: mdi:lightbulb-alert
+      - condition: if_any_on
+        value: "0.0"
+        icon: mdi:lightbulb-on
+        template_conditions: []
+        color: "#ffa500"
+      - condition: if_all_off
+        value: "0.0"
+        icon: mdi:lightbulb-outline
+        color: "#4caf50"
+        template_conditions: []
+    tap_action:
+      action: more-info
+    include:
+      - light.veranda_back_2
+      - light.veranda_back_1
+      - light.backyard
+      - light.veranda_front
+      - light.on_bahce
+      - light.pool_light
+      - light.salon_aplik
+  - domain: cover
+    styles:
+      - condition: if_any_open
+        icon: mdi:garage-alert-variant
+        color: red
+        template_conditions:
+          - "{{ is_state('binary_sensor.garage_door', 'on') }}"
+      - condition: if_all_closed
+        icon: mdi:window-shutter
+        color: "#4caf50"
+        template_conditions: []
+      - condition: if_any_open
+        icon: mdi:window-shutter-open
+        color: red
+        template_conditions:
+          - "{{ now().hour >= 0 and now().hour < 5 }}"
+      - condition: if_any_open
+        icon: mdi:window-shutter-open
+        color: red
+        template_conditions:
+          - "{{ is_state('group.family', 'not_home') }}"
+      - condition: any_unavailable
+        icon: mdi:window-shutter-alert
+        color: red
+        template_conditions:
+          - "{{ is_state('group.family', 'not_home') }}"
+      - condition: any_unavailable
+        icon: mdi:window-shutter-alert
+        color: orange
+        template_conditions:
+          - "{{ is_state('group.family', 'home') }}"
+      - condition: if_any_open
+        icon: mdi:window-shutter-open
+        color: "#4caf50"
+        template_conditions:
+          - >-
+            {{ is_state('group.family', 'home') and ('05:00' <=
+            now().strftime('%H:%M') <= '23:59')}}
+    tap_action:
+      action: more-info
+  - domain: switch
+    include:
+      - switch.zone_1
+      - switch.zone_2
+      - switch.zone_3
+      - switch.zone_4
+      - switch.zone_5
+      - switch.zone_6
+      - switch.zone_7
+      - switch.zone_8
+      - switch.zone_9
+      - switch.zone_10
+      - switch.zone_11
+    styles:
+      - condition: any_unavailable
+        icon: mdi:wifi-off
+        color: red
+      - condition: if_all_off
+        icon: mdi:sprinkler
+        color: "#4caf50"
+      - condition: if_any_on
+        text: >-
+          {% set zone_switches = expand('switch.zone_1', 'switch.zone_2',
+          'switch.zone_3', 'switch.zone_4', 'switch.zone_5', 'switch.zone_6',
+          'switch.zone_7', 'switch.zone_8', 'switch.zone_9', 'switch.zone_10',
+          'switch.zone_11') %} {% set on_switch = zone_switches |
+          selectattr('state', 'eq', 'on') | first %} {{on_switch.name}} is On
+        icon: mdi:sprinkler-variant
+        color: "#3399ff"
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-phone/garden?y=940
+    hold_action:
+      action: more-info
+  - domain: media_player
+    styles:
+      - condition: if_any_playing
+        icon: mdi:television
+        color: "#ffa500"
+      - condition: if_any_off
+        icon: mdi:television-off
+        color: "#4caf50"
+        template_conditions: []
+      - condition: if_any_paused
+        icon: mdi:television
+        color: "#ffa500"
+      - condition: if_any_idle
+        icon: mdi:television
+        color: "#ffa500"
+      - condition: if_any_on
+        icon: mdi:television
+        color: "#ffa500"
+    include:
+      - media_player.living_room
+      - media_player.toshiba
+      - media_player.spotify_cenkataseven
+  - domain: alarm_control_panel
+    styles:
+      - condition: any_unavailable
+        icon: mdi:wifi-off
+        color: "#ff0000"
+      - condition: if_any_disarmed
+        icon: mdi:security
+        color: red
+        template_conditions:
+          - "{{ is_state('group.family', 'not_home') }}"
+      - condition: if_any_disarmed
+        template_conditions:
+          - "{{ is_state('group.family', 'home') }}"
+        color: "#4caf50"
+        icon: mdi:shield-off
+      - condition: if_any_armed
+        icon: mdi:shield-lock
+        color: "#4caf50"
+        template_conditions: []
+      - condition: if_any_triggered
+        color: "#ff0000"
+        text: Triggered
+        icon: mdi:alarm-light
+    include:
+      - alarm_control_panel.alarm_home_alarm
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-phone/Alarm
+  - domain: camera
+    styles:
+      - condition: any_unavailable
+        icon: mdi:video-box-off
+        color: red
+      - condition: if_any_idle
+        icon: mdi:video-check
+        color: "#4caf50"
+    tap_action:
+      action: more-info
+      navigation_path: /lovelace-phone/garden
+    include:
+      - camera.front
+      - camera.garage
+      - camera.side
+      - camera.pool
+  - domain: vacuum
+    styles:
+      - condition: if_all_docked
+        icon: mdi:robot-vacuum
+        color: "#4caf50"
+      - condition: if_any_cleaning
+        color: "#0000ff"
+      - condition: if_any_returning
+        color: "#ffff00"
+      - condition: if_any_error
+        text: Active
+        color: "#ff0000"
+      - condition: any_unavailable
+        text: Active
+        color: "#ff0000"
+    include:
+      - vacuum.viomi_v13
+    tap_action:
+      action: more-info
+    show_input_select: true
+    input_select_entities:
+      - input_select.map
+    hold_action:
+      action: navigate
+      navigation_path: /lovelace-phone/vacuum-media
+  - domain: switch
+    styles:
+      - condition: any_unavailable
+        icon: mdi:pool
+        color: "#ff0000"
+      - condition: if_any_on
+        color: "#00d5ff"
+        icon: mdi:pool
+      - condition: if_all_off
+        color: "#4caf50"
+        icon: mdi:pool
+    include:
+      - switch.pool
+  - domain: binary_sensor
+    include:
+      - binary_sensor.garage_door
+    styles:
+      - condition: any_unavailable
+        icon: mdi:gate-alert
+        color: red
+      - condition: if_all_false
+        icon: mdi:garage-variant
+        color: "#4caf50"
+        template_conditions: []
+      - condition: if_any_true
+        icon: mdi:garage-open-variant
+        color: "#ffa500"
+    tap_action:
+      action: perform-action
+      confirmation:
+        text: Are you sure to toggle Garage Door?
+      perform_action: switch.toggle
+      target:
+        entity_id: switch.garage_door
+      data: {}
+    hold_action:
+      action: perform-action
+      confirmation:
+        text: Are you sure to toggle Driveway Gate?
+      perform_action: switch.toggle
+      target:
+        entity_id: switch.driveway
+      data: {}
+  - domain: zone
+    styles:
+      - condition: if_any_above
+        icon: mdi:account
+        color: "#4caf50"
+        value: 0
+        template_conditions:
+          - >-
+            {{ is_state('person.cenk', 'home') and is_state('person.derya',
+            'home') }}
+      - condition: if_any_equal
+        icon: mdi:account
+        color: "#ff0000"
+        template_conditions: []
+        value: 0
+      - condition: if_any_above
+        template_conditions:
+          - >-
+            {{ is_state('person.cenk', 'not_home') or is_state('person.derya',
+            'not_home') }}
+        value: 0
+        color: "#ffa500"
+        icon: mdi:account
+    include:
+      - zone.home
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-phone/navigation
+    hold_action:
+      action: more-info
+  - domain: sensor
+    include:
+      - sensor.current_water_level
+    styles:
+      - condition: any_unavailable
+        icon: mdi:water-percent-alert
+        color: red
+      - condition: if_any_equal
+        value: "0.0"
+        icon: mdi:water-percent
+        color: "#4caf50"
+        template_conditions: []
+      - condition: if_any_not_equal
+        value: "0.0"
+        icon: mdi:water-percent-alert
+        color: red
+        template_conditions: []
+    hold_action:
+      action: none
+    double_tap_action:
+      action: more-info
+    tap_action:
+      action: more-info
+  - domain: input_boolean
+    styles:
+      - condition: if_all_off
+        icon: mdi:exclamation-thick
+        color: "#ff0000"
+      - condition: if_any_on
+        color: "#4caf50"
+        template_conditions:
+          - "{{ is_state('input_boolean.home', 'on') }}"
+        icon: mdi:home-circle-outline
+      - condition: if_any_on
+        icon: mdi:food-turkey
+        template_conditions:
+          - "{{ is_state('input_boolean.guest', 'on') }}"
+        color: "#ffa500"
+      - condition: if_any_on
+        template_conditions:
+          - "{{ is_state('input_boolean.holiday', 'on') }}"
+        color: "#00fffb"
+        icon: mdi:beach
+    include:
+      - input_boolean.home
+      - input_boolean.guest
+      - input_boolean.holiday
+columns: "4"
+
 ```
 ---
 ## ⭐ Support
