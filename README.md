@@ -12,6 +12,8 @@ This is not just another Lovelace card. It's a highly customizable system for bu
 
 ![image8](images/sample.png)
 
+![image12](images/111.png)
+
 ![image9](images/summary.gif)
 ---
 
