@@ -22,7 +22,8 @@ This is not just another Lovelace card. It's a highly customizable system for bu
 - **Auto-Fill on First Use:** Automatically fills in cards based on detected domains on first load.
 - **Fully Visual Editor:** No YAML required. Add/edit cards, conditions, and templates via a clean UI.
 - **Jinja in Text:** Use domain-specific count placeholders like `{{ on_count }}`, `{{ heating_count }}` or full backend-evaluated Jinja strings inside `text` and `secondary_text`.
-- **Tap Actions:** More Info, Navigate, URL, Perform Action, Nothing...
+- **Tap & Hold Actions:** More Info, Navigate, URL, Perform Action, Toggle, Nothing — with full **confirmation dialog** support (HA native).
+- **Vacuum Popup with Input Select:** Optionally display `input_select` entities (e.g., map selection) directly inside the vacuum more-info popup.
   
 ---
 
@@ -93,13 +94,22 @@ Card try to create card for all available domains. You can modify auto-prepared 
 | `include`      | array    | ❌       | Optional - List of `entity_id`s to include. Only consider these entities. Forget the others               |
 | `exclude`      | array    | ❌       | Optional - List of `entity_id`s to exclude. Consider all entities of the domain but exlude this ones                 |
 | `styles`       | array    | ✅       | Array of style rules based on conditions         |
+| `tap_action`   | object   | ❌       | Action on tap (default: `more-info`). Supports `confirmation` |
+| `hold_action`  | object   | ❌       | Action on hold (default: `none`). Supports `confirmation` |
+| `show_input_select` | boolean | ❌  | **Vacuum only.** Show input_select entities in more-info popup |
+| `input_select_entities` | array | ❌ | **Vacuum only.** List of `input_select` entity_ids to display |
 
 #### 2. **Clock Card**
 
-| Option         | Type     | Required | Description                                      |
-| -------------- | -------- | -------- | ------------------------------------------------ |
-| `domain`       | string   | ✅       | Must be `"clock"`                                |
-| `color`        | string   | ❌       | Icon circle color (`green`, `#ff0000`, etc.)     |
+| Option            | Type     | Required | Description                                      |
+| ----------------- | -------- | -------- | ------------------------------------------------ |
+| `domain`          | string   | ✅       | Must be `"clock"`                                |
+| `name`            | string   | ❌       | Display name                                     |
+| `color`           | string   | ❌       | Icon circle color (`green`, `#ff0000`, etc.)     |
+| `hour_format`     | string   | ❌       | `"24h"` or `"12h"` (default: `24h`)             |
+| `time_locale`     | string   | ❌       | Time locale (e.g. `en-US`, `tr-TR`). Auto-detect |
+| `date_locale`     | string   | ❌       | Date locale (e.g. `en-US`, `de-DE`). Auto-detect |
+| `language_locale` | string   | ❌       | Weekday language (e.g. `en-US`). Auto-detect     |
 
 ---
 
@@ -125,7 +135,7 @@ Each domain exposes a tailored set of conditions. All domains also include `any_
 
 | Domain | Available Conditions |
 |---|---|
-| `light`, `switch` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
+| `light`, `switch`, `input_boolean` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
 | `binary_sensor` | `if_any_true`, `if_all_true`, `if_any_false`, `if_all_false` |
 | `cover` | `if_any_open`, `if_all_open`, `if_any_closed`, `if_all_closed`, `if_any_opening`, `if_all_opening`, `if_any_closing`, `if_all_closing`, `if_any_stopped`, `if_all_stopped` |
 | `media_player` | `if_any_playing`, `if_all_playing`, `if_any_idle`, `if_all_idle`, `if_any_paused`, `if_all_paused`, `if_any_buffering`, `if_all_buffering`, `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
@@ -171,6 +181,7 @@ The following count variables are available in `text` and `secondary_text`. All 
 |---|---|
 | `light` | `{{ on_count }}` `{{ off_count }}` |
 | `switch` | `{{ on_count }}` `{{ off_count }}` |
+| `input_boolean` | `{{ on_count }}` `{{ off_count }}` |
 | `binary_sensor` | `{{ true_count }}` `{{ false_count }}` |
 | `cover` | `{{ open_count }}` `{{ closed_count }}` `{{ opening_count }}` `{{ closing_count }}` `{{ stopped_count }}` |
 | `media_player` | `{{ playing_count }}` `{{ idle_count }}` `{{ paused_count }}` `{{ buffering_count }}` `{{ on_count }}` `{{ off_count }}` |
@@ -204,8 +215,39 @@ template_conditions:
 Via Include Enitites option, you can easily create card for only one entity of the selected domain (or two, or three.. depens on your need)
 Via Exlude Enitites option, you can easily exclude one entitiy (or two, or three.. depens on your needs) from your selected domain and create card for the rest of the domain
 
-### Tap Actions
+### Tap & Hold Actions
 ![image15](images/tap.png)
+
+Both `tap_action` and `hold_action` support the standard HA action types: **More Info**, **Toggle**, **Navigate**, **URL**, **Perform Action**, **Assist**, and **Nothing**.
+
+Actions like `perform-action`, `navigate`, `url`, and `assist` are delegated to Home Assistant's native action handler, which means **confirmation dialogs** work out of the box:
+
+```yaml
+tap_action:
+  action: perform-action
+  confirmation:
+    text: "Are you sure you want to restart?"
+  perform_action: script.restart
+```
+
+#### Vacuum: Input Select in Popup
+
+For vacuum domain cards, when tap or hold action is set to **More Info**, you can optionally display `input_select` entities inside the popup (e.g., for map selection):
+
+```yaml
+- domain: vacuum
+  name: Robot Vacuum
+  show_input_select: true
+  input_select_entities:
+    - input_select.vacuum_map
+  tap_action:
+    action: more-info
+  styles:
+    - condition: if_any_cleaning
+      text: "Cleaning"
+      icon: mdi:robot-vacuum
+      color: green
+```
 
 
 ## 🎨 Tap Action - More Info Screenshots
@@ -742,6 +784,309 @@ cards:
         icon: mdi:video-check
         color: green
 
+```
+### Example 6: Just Icons For Mobile Phone with more info popups
+
+![image10](images/moreinfos.png)
+```
+  - type: custom:summary-card
+    row_height: 65px
+    cards:
+      - domain: light
+        styles:
+          - condition: any_unavailable
+            color: red
+            icon: mdi:lightbulb-alert
+          - condition: if_any_on
+            value: "0.0"
+            icon: mdi:lightbulb-on
+            template_conditions: []
+            color: "#ffa500"
+          - condition: if_all_off
+            value: "0.0"
+            icon: mdi:lightbulb-outline
+            color: "#4caf50"
+            template_conditions: []
+        tap_action:
+          action: more-info
+        include:
+          - light.veranda_back_2
+          - light.veranda_back_1
+          - light.backyard
+          - light.veranda_front
+          - light.on_bahce
+          - light.pool_light
+          - light.salon_aplik
+      - domain: cover
+        styles:
+          - condition: if_any_open
+            icon: mdi:garage-alert-variant
+            color: red
+            template_conditions:
+              - "{{ is_state('binary_sensor.garage_door', 'on') }}"
+          - condition: if_all_closed
+            icon: mdi:window-shutter
+            color: "#4caf50"
+            template_conditions: []
+          - condition: if_any_open
+            icon: mdi:window-shutter-open
+            color: red
+            template_conditions:
+              - "{{ now().hour >= 0 and now().hour < 5 }}"
+          - condition: if_any_open
+            icon: mdi:window-shutter-open
+            color: red
+            template_conditions:
+              - "{{ is_state('group.family', 'not_home') }}"
+          - condition: any_unavailable
+            icon: mdi:window-shutter-alert
+            color: red
+            template_conditions:
+              - "{{ is_state('group.family', 'not_home') }}"
+          - condition: any_unavailable
+            icon: mdi:window-shutter-alert
+            color: orange
+            template_conditions:
+              - "{{ is_state('group.family', 'home') }}"
+          - condition: if_any_open
+            icon: mdi:window-shutter-open
+            color: "#4caf50"
+            template_conditions:
+              - >-
+                {{ is_state('group.family', 'home') and ('05:00' <=
+                now().strftime('%H:%M') <= '23:59')}}
+        tap_action:
+          action: more-info
+      - domain: switch
+        include:
+          - switch.zone_1
+          - switch.zone_2
+          - switch.zone_3
+          - switch.zone_4
+          - switch.zone_5
+          - switch.zone_6
+          - switch.zone_7
+          - switch.zone_8
+          - switch.zone_9
+          - switch.zone_10
+          - switch.zone_11
+        styles:
+          - condition: any_unavailable
+            icon: mdi:wifi-off
+            color: red
+          - condition: if_all_off
+            icon: mdi:sprinkler
+            color: "#4caf50"
+          - condition: if_any_on
+            text: >-
+              {% set zone_switches = expand('switch.zone_1', 'switch.zone_2',
+              'switch.zone_3', 'switch.zone_4', 'switch.zone_5',
+              'switch.zone_6', 'switch.zone_7', 'switch.zone_8',
+              'switch.zone_9', 'switch.zone_10', 'switch.zone_11') %} {% set
+              on_switch = zone_switches | selectattr('state', 'eq', 'on') |
+              first %} {{on_switch.name}} is On
+            icon: mdi:sprinkler-variant
+            color: "#3399ff"
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace-phone/garden?y=940
+        hold_action:
+          action: more-info
+      - domain: media_player
+        styles:
+          - condition: if_any_playing
+            icon: mdi:television
+            color: "#ffa500"
+          - condition: if_any_off
+            icon: mdi:television-off
+            color: "#4caf50"
+            template_conditions: []
+          - condition: if_any_paused
+            icon: mdi:television
+            color: "#ffa500"
+          - condition: if_any_idle
+            icon: mdi:television
+            color: "#ffa500"
+          - condition: if_any_on
+            icon: mdi:television
+            color: "#ffa500"
+        include:
+          - media_player.living_room
+          - media_player.toshiba
+          - media_player.spotify_cenkataseven
+      - domain: alarm_control_panel
+        styles:
+          - condition: any_unavailable
+            icon: mdi:wifi-off
+            color: "#ff0000"
+          - condition: if_any_disarmed
+            icon: mdi:security
+            color: red
+            template_conditions:
+              - "{{ is_state('group.family', 'not_home') }}"
+          - condition: if_any_disarmed
+            template_conditions:
+              - "{{ is_state('group.family', 'home') }}"
+            color: "#4caf50"
+            icon: mdi:shield-off
+          - condition: if_any_armed
+            icon: mdi:shield-lock
+            color: "#4caf50"
+            template_conditions: []
+          - condition: if_any_triggered
+            color: "#ff0000"
+            text: Triggered
+            icon: mdi:alarm-light
+        include:
+          - alarm_control_panel.alarm_home_alarm
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace-phone/Alarm
+      - domain: camera
+        styles:
+          - condition: any_unavailable
+            icon: mdi:video-box-off
+            color: red
+          - condition: if_any_idle
+            icon: mdi:video-check
+            color: "#4caf50"
+        tap_action:
+          action: more-info
+          navigation_path: /lovelace-phone/garden
+        include:
+          - camera.front
+          - camera.garage
+          - camera.side
+          - camera.pool
+      - domain: vacuum
+        styles:
+          - condition: if_all_docked
+            icon: mdi:robot-vacuum
+            color: "#4caf50"
+          - condition: if_any_cleaning
+            color: "#0000ff"
+          - condition: if_any_returning
+            color: "#ffff00"
+          - condition: if_any_error
+            text: Active
+            color: "#ff0000"
+          - condition: any_unavailable
+            text: Active
+            color: "#ff0000"
+        include:
+          - vacuum.viomi_v13
+        tap_action:
+          action: more-info
+        show_input_select: true
+        input_select_entities:
+          - input_select.map
+        hold_action:
+          action: navigate
+          navigation_path: /lovelace-phone/vacuum-media
+      - domain: switch
+        styles:
+          - condition: any_unavailable
+            icon: mdi:pool
+            color: "#ff0000"
+          - condition: if_any_on
+            color: "#00d5ff"
+            icon: mdi:pool
+          - condition: if_all_off
+            color: "#4caf50"
+            icon: mdi:pool
+        include:
+          - switch.pool
+      - domain: binary_sensor
+        include:
+          - binary_sensor.garage_door
+        styles:
+          - condition: any_unavailable
+            icon: mdi:gate-alert
+            color: red
+          - condition: if_all_false
+            icon: mdi:garage-variant
+            color: "#4caf50"
+            template_conditions: []
+          - condition: if_any_true
+            icon: mdi:garage-open-variant
+            color: "#ffa500"
+        hold_action:
+          action: perform-action
+          confirmation: true
+          perform_action: switch.toggle
+          target:
+            entity_id: switch.garage_door
+          data: {}
+        tap_action:
+          action: more-info
+      - domain: person
+        styles:
+          - condition: any_unavailable
+            color: "#ff0000"
+            icon: mdi:account-alert
+          - condition: if_all_away
+            color: "#0000ff"
+            icon: mdi:home-export-outline
+          - condition: if_any_at_home
+            icon: mdi:account
+            color: "#4caf50"
+        include:
+          - person.cenk
+          - person.derya
+          - person.mine
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace-phone/navigation
+      - domain: sensor
+        include:
+          - sensor.current_water_level
+        styles:
+          - condition: any_unavailable
+            icon: mdi:water-percent-alert
+            color: red
+          - condition: if_any_equal
+            value: "0.0"
+            icon: mdi:water-percent
+            color: "#4caf50"
+            template_conditions: []
+          - condition: if_any_not_equal
+            value: "0.0"
+            icon: mdi:water-percent-alert
+            color: red
+            template_conditions: []
+        hold_action:
+          action: none
+        double_tap_action:
+          action: more-info
+        tap_action:
+          action: more-info
+      - domain: input_boolean
+        styles:
+          - condition: if_all_off
+            icon: mdi:exclamation-thick
+            color: "#ff0000"
+          - condition: if_any_on
+            color: "#4caf50"
+            template_conditions:
+              - "{{ is_state('input_boolean.home', 'on') }}"
+            icon: mdi:home-circle-outline
+          - condition: if_any_on
+            text: Active
+            icon: mdi:food-turkey
+            template_conditions:
+              - "{{ is_state('input_boolean.guest', 'on') }}"
+            color: "#ffa500"
+          - condition: if_any_on
+            text: Active
+            template_conditions:
+              - "{{ is_state('input_boolean.holiday', 'on') }}"
+            color: "#00fffb"
+            icon: mdi:beach
+        include:
+          - input_boolean.home
+          - input_boolean.guest
+          - input_boolean.holiday
+    columns: "4"
 ```
 ---
 ## ⭐ Support
