@@ -3,6 +3,15 @@
 </a>      
 
 # Summary Card for Home Assistant
+
+![Downloads](https://img.shields.io/github/downloads/cataseven/Summary-Card/total?color=41BDF5&logo=home-assistant&label=Downloads&suffix=%20downloads&style=for-the-badge)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/frontend)
+[![GitHub Release](https://img.shields.io/github/release/cataseven/Summary-Card.svg)](https://github.com/cataseven/Summary-Card/releases)
+[![License](https://img.shields.io/github/license/cataseven/Summary-Card.svg)](LICENSE)
+![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1.0%2B-blue.svg)
+![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)
+[![GitHub Stars](https://img.shields.io/github/stars/cataseven/Summary-Card?style=social)](https://github.com/cataseven/Summary-Card)
+[![GitHub Issues](https://img.shields.io/github/issues/cataseven/Summary-Card?style=flat-square)](https://github.com/cataseven/Summary-Card/issues)
 ---
 ![image11](images/top.png)
 
