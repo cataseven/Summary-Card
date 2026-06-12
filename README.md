@@ -1130,6 +1130,8 @@ row_height: 60px
 cards:
   - domain: switch
     name: Pool
+    include:
+      - switch.pool
     styles:
       - condition: any_unavailable
         text: Unavailable
@@ -1137,9 +1139,14 @@ cards:
       - condition: if_any_on
         text: >-
           {% set on_ts = states('sensor.pool_is_on') | float(0) %} {% set diff =
-          as_timestamp(now()) - on_ts %} {% set hours = (diff // 3600) | int %}
-          {% set minutes = ((diff % 3600) // 60) | int %} Running for {% if
-          hours > 0 %}{{ hours }}h {% endif %}{{ minutes }}m
+          (as_timestamp(now()) - on_ts) | int(0) %} {% set h = diff // 3600 %}
+          {% set m = (diff % 3600) // 60 %} {% set s = diff % 60 %}
+
+          {% if diff < 60 %}
+            Running for {{ s }}s
+          {% else %}
+            Running for {% if h > 0 %}{{ h }}h {% endif %}{{ m }}m
+          {% endif %}
         icon: mdi:pool
         color: "#0079fa"
       - condition: if_all_off
@@ -1148,22 +1155,22 @@ cards:
           on_ts = states('sensor.pool_is_on') | float(0) %}
 
           {# Ne kadar süre önce kapandığı (ago) hesaplaması #} {% set diff_ago =
-          as_timestamp(now()) - off_ts %} {% set ago_h = (diff_ago // 3600) |
-          int %} {% set ago_m = ((diff_ago % 3600) // 60) | int %} {% set
-          ago_str = (ago_h ~ 'h ' if ago_h > 0 else '') ~ ago_m ~ 'm' %}
+          (as_timestamp(now()) - off_ts) | int(0) %} {% set ago_h = diff_ago //
+          3600 %} {% set ago_m = (diff_ago % 3600) // 60 %} {% set ago_s =
+          diff_ago % 60 %} {% set ago_str = ago_s ~ 's' if diff_ago < 60 else
+          ((ago_h ~ 'h ' if ago_h > 0 else '') ~ ago_m ~ 'm') %}
 
           {# Ne kadar süre çalıştığı (duration) hesaplaması #} {% set diff_dur =
-          off_ts - on_ts %} {% set dur_h = (diff_dur // 3600) | int %} {% set
-          dur_m = ((diff_dur % 3600) // 60) | int %} {% set dur_str = (dur_h ~
-          'h ' if dur_h > 0 else '') ~ dur_m ~ 'm' %}
+          (off_ts - on_ts) | int(0) %} {% set dur_h = diff_dur // 3600 %} {% set
+          dur_m = (diff_dur % 3600) // 60 %} {% set dur_s = diff_dur % 60 %} {%
+          set dur_str = dur_s ~ 's' if diff_dur < 60 else ((dur_h ~ 'h ' if
+          dur_h > 0 else '') ~ dur_m ~ 'm') %}
 
           Turned Off {{ ago_str }} ago after running {{ dur_str }}
         icon: mdi:pool
         color: "#4caf50"
     tap_action:
       action: more-info
-    include:
-      - switch.pool
 ```
 ---
 ## ⭐ Support
