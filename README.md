@@ -1120,6 +1120,51 @@ cards:
 columns: "4"
 
 ```
+### Example 7: Template Text
+
+![image10](images/pool.png)
+
+```
+type: custom:summary-card
+row_height: 60px
+cards:
+  - domain: switch
+    name: Pool
+    styles:
+      - condition: any_unavailable
+        text: Unavailable
+        secondary_text: Check Device
+      - condition: if_any_on
+        text: >-
+          {% set on_ts = states('sensor.pool_is_on') | float(0) %} {% set diff =
+          as_timestamp(now()) - on_ts %} {% set hours = (diff // 3600) | int %}
+          {% set minutes = ((diff % 3600) // 60) | int %} Running for {% if
+          hours > 0 %}{{ hours }}h {% endif %}{{ minutes }}m
+        icon: mdi:pool
+        color: "#0079fa"
+      - condition: if_all_off
+        text: >-
+          {% set off_ts = states('sensor.pool_is_off') | float(0) %}  {% set
+          on_ts = states('sensor.pool_is_on') | float(0) %}
+
+          {# Ne kadar süre önce kapandığı (ago) hesaplaması #} {% set diff_ago =
+          as_timestamp(now()) - off_ts %} {% set ago_h = (diff_ago // 3600) |
+          int %} {% set ago_m = ((diff_ago % 3600) // 60) | int %} {% set
+          ago_str = (ago_h ~ 'h ' if ago_h > 0 else '') ~ ago_m ~ 'm' %}
+
+          {# Ne kadar süre çalıştığı (duration) hesaplaması #} {% set diff_dur =
+          off_ts - on_ts %} {% set dur_h = (diff_dur // 3600) | int %} {% set
+          dur_m = ((diff_dur % 3600) // 60) | int %} {% set dur_str = (dur_h ~
+          'h ' if dur_h > 0 else '') ~ dur_m ~ 'm' %}
+
+          Turned Off {{ ago_str }} ago after running {{ dur_str }}
+        icon: mdi:pool
+        color: "#4caf50"
+    tap_action:
+      action: more-info
+    include:
+      - switch.pool
+```
 ---
 ## ⭐ Support
 
