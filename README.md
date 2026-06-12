@@ -1122,7 +1122,7 @@ columns: "4"
 ```
 ### Example 7: Template Text
 
-![image10](images/pool.png)
+![image10](images/pool1.png)
 
 ```
 type: custom:summary-card
