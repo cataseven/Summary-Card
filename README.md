@@ -72,7 +72,7 @@ Card detects your available domains automatically. You can modify as you want
 
 
 ### UI EDITOR
-![image7](images/ui1.png)
+![image7](images/ui2.png)
 
 
 ### HIERARCHY
