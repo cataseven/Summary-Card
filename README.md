@@ -37,6 +37,7 @@ This is not just another Lovelace card. It's a highly customizable system for bu
 - **Jinja in Text:** Use domain-specific count placeholders like `{{ on_count }}`, `{{ heating_count }}` or full backend-evaluated Jinja strings inside `text` and `secondary_text`.
 - **Tap & Hold Actions:** More Info, Navigate, URL, Perform Action, Toggle, Nothing — with full **confirmation dialog** support (HA native).
 - **Vacuum Popup with Input Select:** Optionally display `input_select` entities (e.g., map selection) directly inside the vacuum more-info popup.
+- **Domain-Specific Popup Controls:** Covers, valves, lawn mowers, media players, climate and more get tailored controls in the more-info popup — e.g. Open/Stop/Close and a position slider for valves.
   
 ---
 
@@ -151,11 +152,13 @@ Each domain exposes a tailored set of conditions. All domains also include `any_
 | `light`, `switch`, `input_boolean` | `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
 | `binary_sensor` | `if_any_true`, `if_all_true`, `if_any_false`, `if_all_false` |
 | `cover` | `if_any_open`, `if_all_open`, `if_any_closed`, `if_all_closed`, `if_any_opening`, `if_all_opening`, `if_any_closing`, `if_all_closing`, `if_any_stopped`, `if_all_stopped` |
+| `valve` | `if_any_open`, `if_all_open`, `if_any_closed`, `if_all_closed`, `if_any_opening`, `if_all_opening`, `if_any_closing`, `if_all_closing`, `if_any_stopped`, `if_all_stopped`, `if_any_water`, `if_all_water`, `if_any_gas`, `if_all_gas` |
 | `media_player` | `if_any_playing`, `if_all_playing`, `if_any_idle`, `if_all_idle`, `if_any_paused`, `if_all_paused`, `if_any_buffering`, `if_all_buffering`, `if_any_on`, `if_all_on`, `if_any_off`, `if_all_off` |
 | `person` | `if_any_at_home`, `if_all_at_home`, `if_any_away`, `if_all_away` |
 | `alarm_control_panel` | `if_any_armed`, `if_all_armed`, `if_any_disarmed`, `if_all_disarmed`, `if_any_triggered`, `if_all_triggered`, `if_any_arming`, `if_all_arming`, `if_any_pending`, `if_all_pending` |
 | `lock` | `if_any_unlocked`, `if_all_unlocked`, `if_any_locked`, `if_all_locked`, `if_any_locking`, `if_all_locking`, `if_any_unlocking`, `if_all_unlocking`, `if_any_jammed`, `if_all_jammed` |
 | `vacuum` | `if_any_cleaning`, `if_all_cleaning`, `if_any_docked`, `if_all_docked`, `if_any_returning`, `if_all_returning`, `if_any_paused`, `if_all_paused`, `if_any_idle`, `if_all_idle`, `if_any_error`, `if_all_error` |
+| `lawn_mower` | `if_any_mowing`, `if_all_mowing`, `if_any_docked`, `if_all_docked`, `if_any_returning`, `if_all_returning`, `if_any_paused`, `if_all_paused`, `if_any_error`, `if_all_error` |
 | `camera` | `if_any_streaming`, `if_all_streaming`, `if_any_idle`, `if_all_idle`, `if_any_recording`, `if_all_recording` |
 | `climate` (HVAC mode) | `if_any_heat`, `if_all_heat`, `if_any_cool`, `if_all_cool`, `if_any_heat_cool`, `if_all_heat_cool`, `if_any_auto`, `if_all_auto`, `if_any_dry`, `if_all_dry`, `if_any_fan_only`, `if_all_fan_only`, `if_any_off`, `if_all_off` |
 | `climate` (hvac_action) | `if_any_heating`, `if_all_heating`, `if_any_cooling`, `if_all_cooling`, `if_any_idle`, `if_all_idle`, `if_any_fan`, `if_all_fan`, `if_any_drying`, `if_all_drying`, `if_any_preheating`, `if_all_preheating`, `if_any_defrosting`, `if_all_defrosting` |
@@ -169,6 +172,8 @@ Each domain exposes a tailored set of conditions. All domains also include `any_
 | `zone` | `if_any_occupied`, `if_all_empty`, `if_any_above`, `if_any_below`, `if_any_equal`, `if_any_not_equal`, `any_unavailable` |
 
 > **Climate note:** HVAC mode conditions (e.g. `if_any_heat`) reflect what mode the thermostat is *set to*. hvac_action conditions (e.g. `if_any_heating`) reflect what the device is *physically doing right now* — a thermostat set to `heat` may have `hvac_action: idle` if the target temperature is already reached.
+
+> **Valve note:** `if_any_water` / `if_any_gas` match on the valve's **device class**, not its state — useful when one card covers both water and gas valves. Combine them with `template_conditions` if you need e.g. "any *gas* valve open".
 
 For example:
 
@@ -198,11 +203,13 @@ The following count variables are available in `text` and `secondary_text`. All 
 | `input_boolean` | `{{ on_count }}` `{{ off_count }}` |
 | `binary_sensor` | `{{ true_count }}` `{{ false_count }}` |
 | `cover` | `{{ open_count }}` `{{ closed_count }}` `{{ opening_count }}` `{{ closing_count }}` `{{ stopped_count }}` |
+| `valve` | `{{ open_count }}` `{{ closed_count }}` `{{ opening_count }}` `{{ closing_count }}` `{{ stopped_count }}` `{{ water_count }}` `{{ gas_count }}` |
 | `media_player` | `{{ playing_count }}` `{{ idle_count }}` `{{ paused_count }}` `{{ buffering_count }}` `{{ on_count }}` `{{ off_count }}` |
 | `person` | `{{ at_home_count }}` `{{ away_count }}` |
 | `alarm_control_panel` | `{{ armed_count }}` `{{ disarmed_count }}` `{{ triggered_count }}` `{{ arming_count }}` `{{ pending_count }}` |
 | `lock` | `{{ unlocked_count }}` `{{ locked_count }}` `{{ locking_count }}` `{{ unlocking_count }}` `{{ jammed_count }}` |
 | `vacuum` | `{{ cleaning_count }}` `{{ docked_count }}` `{{ returning_count }}` `{{ paused_count }}` `{{ idle_count }}` `{{ error_count }}` |
+| `lawn_mower` | `{{ mowing_count }}` `{{ docked_count }}` `{{ returning_count }}` `{{ paused_count }}` `{{ error_count }}` |
 | `camera` | `{{ streaming_count }}` `{{ idle_count }}` `{{ recording_count }}` |
 | `climate` (HVAC mode) | `{{ heat_count }}` `{{ cool_count }}` `{{ heat_cool_count }}` `{{ auto_count }}` `{{ dry_count }}` `{{ fan_only_count }}` `{{ off_count }}` |
 | `climate` (hvac_action) | `{{ heating_count }}` `{{ cooling_count }}` `{{ idle_count }}` `{{ fan_count }}` `{{ drying_count }}` `{{ preheating_count }}` `{{ defrosting_count }}` |
@@ -262,6 +269,55 @@ For vacuum domain cards, when tap or hold action is set to **More Info**, you ca
       text: "Cleaning"
       icon: mdi:robot-vacuum
       color: green
+```
+
+
+## Valve: Popup Controls
+
+For valve domain cards, when tap or hold action is set to **More Info**, the popup shows **Open / Stop / Close** buttons for each valve. Valves that report a position (`current_valve_position`) also get a slider to set how far they are open — simple on/off valves just show the buttons.
+
+```yaml
+- domain: valve
+  name: Water Valves
+  tap_action:
+    action: more-info
+  styles:
+    - condition: if_any_opening
+      text: "Opening..."
+      icon: mdi:valve
+      color: orange
+    - condition: if_any_open
+      text: "{{ open_count }} open"
+      icon: mdi:valve-open
+      color: "#03a9f4"
+    - condition: if_all_closed
+      text: "All closed"
+      icon: mdi:valve-closed
+      color: grey
+```
+
+## Lawn Mower: Popup Controls
+
+Lawn mower cards show **Start / Pause / Dock** buttons in the more-info popup, plus the battery level when the mower reports one.
+
+```yaml
+- domain: lawn_mower
+  name: Mowers
+  tap_action:
+    action: more-info
+  styles:
+    - condition: if_any_error
+      text: "Check mower"
+      icon: mdi:robot-mower-outline
+      color: red
+    - condition: if_any_mowing
+      text: "{{ mowing_count }} mowing"
+      icon: mdi:robot-mower
+      color: green
+    - condition: if_all_docked
+      text: "All docked"
+      icon: mdi:robot-mower
+      color: grey
 ```
 
 
