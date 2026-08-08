@@ -38,6 +38,7 @@ This is not just another Lovelace card. It's a highly customizable system for bu
 - **Tap & Hold Actions:** More Info, Navigate, URL, Perform Action, Toggle, Nothing — with full **confirmation dialog** support (HA native).
 - **Vacuum Popup with Input Select:** Optionally display `input_select` entities (e.g., map selection) directly inside the vacuum more-info popup.
 - **Domain-Specific Popup Controls:** Covers, valves, lawn mowers, media players, climate and more get tailored controls in the more-info popup — e.g. Open/Stop/Close and a position slider for valves.
+- **Group by Area:** Optionally group the entities inside a card's popup under Home Assistant area headers — entities without an area are listed under "Other".
   
 ---
 
@@ -52,7 +53,7 @@ This is not just another Lovelace card. It's a highly customizable system for bu
 
 ### Manual
 
-1. Download `summary-card.js` from the [releases](https://github.com/YOUR_USERNAME/summary-card/releases).
+1. Download `summary-card.js` from the [releases](https://github.com/cataseven/Summary-Card/releases).
 2. Place it in `config/www/`.
 3. Add as a resource:
 
@@ -110,8 +111,9 @@ Card try to create card for all available domains. You can modify auto-prepared 
 | `styles`       | array    | ✅       | Array of style rules based on conditions         |
 | `tap_action`   | object   | ❌       | Action on tap (default: `more-info`). Supports `confirmation` |
 | `hold_action`  | object   | ❌       | Action on hold (default: `none`). Supports `confirmation` |
-| `show_input_select` | boolean | ❌  | **Vacuum only.** Show input_select entities in more-info popup |
-| `input_select_entities` | array | ❌ | **Vacuum only.** List of `input_select` entity_ids to display |
+| `group_by_area` | boolean | ❌   | Group the entities in the more-info popup by area. Entities without an area are listed under "Other" |
+| `show_input_select` | boolean | ❌  | **Vacuum & Lawn Mower only.** Show input_select entities in more-info popup |
+| `input_select_entities` | array | ❌ | **Vacuum & Lawn Mower only.** List of `input_select` entity_ids to display |
 
 #### 2. **Clock Card**
 
@@ -205,7 +207,7 @@ The following count variables are available in `text` and `secondary_text`. All 
 | `cover` | `{{ open_count }}` `{{ closed_count }}` `{{ opening_count }}` `{{ closing_count }}` `{{ stopped_count }}` |
 | `valve` | `{{ open_count }}` `{{ closed_count }}` `{{ opening_count }}` `{{ closing_count }}` `{{ stopped_count }}` `{{ water_count }}` `{{ gas_count }}` |
 | `media_player` | `{{ playing_count }}` `{{ idle_count }}` `{{ paused_count }}` `{{ buffering_count }}` `{{ on_count }}` `{{ off_count }}` |
-| `person` | `{{ at_home_count }}` `{{ away_count }}` |
+| `person` | `{{ at_home_count }}` `{{ away_count }}` — anyone who is not at home (including people in named zones) counts as away |
 | `alarm_control_panel` | `{{ armed_count }}` `{{ disarmed_count }}` `{{ triggered_count }}` `{{ arming_count }}` `{{ pending_count }}` |
 | `lock` | `{{ unlocked_count }}` `{{ locked_count }}` `{{ locking_count }}` `{{ unlocking_count }}` `{{ jammed_count }}` |
 | `vacuum` | `{{ cleaning_count }}` `{{ docked_count }}` `{{ returning_count }}` `{{ paused_count }}` `{{ idle_count }}` `{{ error_count }}` |
@@ -237,6 +239,25 @@ template_conditions:
 Via Include Enitites option, you can easily create card for only one entity of the selected domain (or two, or three.. depens on your need)
 Via Exlude Enitites option, you can easily exclude one entitiy (or two, or three.. depens on your needs) from your selected domain and create card for the rest of the domain
 
+### Group Popup Entities by Area
+
+When a card covers many entities with similar names ("Light", "Ceiling Fan Light"...), enable **Group entities by area in popup** in the editor's Entities tab, or add `group_by_area: true` in YAML. The more-info popup then groups its rows under area headers, using each entity's area (or the area of the device it belongs to). Entities without an area are listed at the bottom under **Other**.
+
+```yaml
+- domain: light
+  name: Lights
+  group_by_area: true
+  styles:
+    - condition: if_any_on
+      text: "{{ on_count }} On"
+      icon: mdi:lightbulb-on
+      color: orange
+    - condition: if_all_off
+      text: All Off
+      icon: mdi:lightbulb-off-outline
+      color: green
+```
+
 ### Tap & Hold Actions
 ![image15](images/tap.png)
 
@@ -252,9 +273,9 @@ tap_action:
   perform_action: script.restart
 ```
 
-## Vacuum: Input Select in Popup
+## Vacuum & Lawn Mower: Input Select in Popup
 
-For vacuum domain cards, when tap or hold action is set to **More Info**, you can optionally display `input_select` entities inside the popup (e.g., for map selection):
+For vacuum and lawn mower domain cards, when tap or hold action is set to **More Info**, you can optionally display `input_select` entities inside the popup (e.g., for map selection):
 
 ```yaml
 - domain: vacuum
